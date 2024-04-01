@@ -1,6 +1,5 @@
 package com.yu.gateway.core.context;
 
-import com.yu.gateway.common.config.Rule;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.util.Map;
@@ -9,175 +8,48 @@ import java.util.function.Consumer;
 /**
  * @author yu
  * @description 核心上下文接口定义
- * @date 2024-03-31
+ * @date 2024-04-01
  */
 public interface IContext {
+    /**
+     * 设置上下文状态
+     * @param status
+     */
+    void setContextStatus(ContextStatus status);
 
-	/**
-	 * 一个请求正在执行中的状态
-	 */
-	int RUNNING = 0;
-	/**
-	 * 标志请求结束，写回Response
-	 */
-	int WRITTEN = 1;
-	/**
-	 * 写回成功后，设置该标识，如果是Netty ，ctx.WriteAndFlush(response)
-	 */
-	int COMPLETED = 2;
-	/**
-	 * 整个网关请求完毕，彻底结束
-	 */
-	int TERMINATED = -1;
+    /**
+     * 判断上下文状态
+     * @param status
+     * @return
+     */
+    boolean judgeContextStatus(ContextStatus status);
+    // 获取请求协议名
+    String getProtocol();
+    // 获取请求转换规则
+    //Rule getRule();
+    // 获取请求对象
+    Object getRequest();
+    // 获取响应对象
+    Object getResponse();
+    // 获取异常信息
+    Throwable getThrowable();
+    // 获取上下文参数
+    Object getAttribute(Map<String, Object> key);
+    // 获取 Netty 上下文
+    ChannelHandlerContext getNettyContext();
 
-	/**
-	 * 设置上下文状态为正常运行状态
-	 */
-	void running();
-
-	/**
-	 * 设置上下文状态为标记写回
-	 */
-	void written();
-
-	/**
-	 * 设置上下文状态为标记写回成功
-	 */
-	void completed();
-
-	/**
-	 * 设置上下文状态为标记写回成功
-	 */
-	void terminated();
-
-	/**
-	 * 判断网关状态运行状态
-	 *
-	 * @return
-	 */
-	boolean isRunning();
-
-	/**
-	 * 判断网关状态写回状态
-	 *
-	 * @return
-	 */
-	boolean isWritten();
-
-
-	/**
-	 * 判断网关状态写回成功状态
-	 *
-	 * @return
-	 */
-	boolean isCompleted();
-
-	/**
-	 * 判断网关状态结束状态
-	 *
-	 * @return
-	 */
-	boolean isTerminated();
-
-	/**
-	 * 获取请求转换协议
-	 *
-	 * @return
-	 */
-	String getProtocol();
-
-	/**
-	 * 获取请求转换协议
-	 *
-	 * @return
-	 */
-	Rule getRule();
-
-	/**
-	 * 获取请求对象
-	 *
-	 * @return
-	 */
-	Object getRequest();
-
-	/**
-	 * 获取请求结果
-	 *
-	 * @return
-	 */
-	Object getResponse();
-
-	/**
-	 * 获取异常信息
-	 *
-	 * @return
-	 */
-	Throwable getThrowable();
-
-	/**
-	 * 获取上下文参数
-	 *
-	 * @return
-	 */
-	Object getAttribute(Map<String, Object> key);
-
-	/**
-	 * 设置请求规则
-	 *
-	 * @return
-	 */
-	void setRule();
-
-	/**
-	 * 设置请求返回结果
-	 *
-	 * @return
-	 */
-	void setResponse();
-
-	/**
-	 * 设置请求异常信息
-	 *
-	 * @return
-	 */
-	void setThrowable(Throwable throwable);
-
-	/**
-	 * 设置上下文参数
-	 *
-	 * @return
-	 */
-	void setAttribute(String key, Object obj);
-
-	/**
-	 * 获取Netty上下文
-	 *
-	 * @return
-	 */
-	ChannelHandlerContext getNettyCtx();
-
-	/**
-	 * 是否保持连接
-	 *
-	 * @return
-	 */
-	boolean isKeepAlive();
-
-	/**
-	 * 释放资源
-	 */
-	void releaseRequest();
-
-	/**
-	 * 设置回调函数
-	 *
-	 * @param consumer
-	 */
-	void setCompletedCallBack(Consumer<IContext> consumer);
-
-	/**
-	 * 设置回调函数
-	 */
-	void invokeCompletedCallBack();
-
+    // 设置响应
+    void setResponse();
+    // 设置异常信息
+    void setThrowable(Throwable throwable);
+    // 设置上下文参数
+    void setAttribute(String key, Object value);
+    // 是否保持长连接
+    boolean isKeepAlive();
+    // 资源释放
+    void releaseRequest();
+    // 设置回调函数
+    void setCompletedCallBack(Consumer<IContext> consumer);
+    // 执行回调函数
+    void invokeCompletedCallBacks();
 }

@@ -4,170 +4,132 @@ import com.yu.gateway.common.config.Rule;
 import com.yu.gateway.common.utils.AssertUtil;
 import com.yu.gateway.core.request.GatewayRequest;
 import com.yu.gateway.core.response.GatewayResponse;
-import io.micrometer.core.instrument.Timer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCountUtil;
 import lombok.Getter;
 import lombok.Setter;
 
-
 /**
- * @author yu
- * @description 网关上下文：也就是包含了请求以及请求响应，并且包含了一系列的规则
- * @date 2024-03-31
+ *  网关上下文对象，封装以下：
+ *  1）request-object；
+ *  2）response-object；
+ *  3）请求规则；
+ *  4）灰度发布、请求重试次数等；
  */
-public class GatewayContext extends BasicContext {
+@Getter
+@Setter
+public class GatewayContext extends BaseContext {
+    /**
+     * 自定义协议请求体
+     */
+    private GatewayRequest request;
 
-	private GatewayRequest request;
+    /**
+     * 自定义协议响应体
+     */
+    private GatewayResponse response;
 
-	private GatewayResponse response;
+    /**
+     * url映射规则
+     */
+    private Rule rules;
 
-	private Rule rule;
+    /**
+     * 灰度发布
+     */
+    private boolean gray;
 
-	private int currentRetryTimes;
+    /**
+     * 最大重试次数
+     */
+    private int currentRetryTimes;
 
-	@Setter
-	@Getter
-	private boolean gray;
+    public static Builder newBuilder() {
+        return new Builder();
+    }
 
-	/**
-	 * 记录应用程序中的方法调用或服务请求所花费的时间
-	 */
-	@Setter
-	@Getter
-	private Timer.Sample timerSample;
+    public GatewayContext(String protocol, boolean keepAlive, ChannelHandlerContext nettyCtx, GatewayRequest request, Rule rules, int currentRetryTimes) {
+        super(protocol, keepAlive, nettyCtx);
+        this.request = request;
+        this.rules = rules;
+        this.currentRetryTimes = currentRetryTimes;
+    }
 
-	/**
-	 * 构造函数
-	 *
-	 * @param protocol
-	 * @param nettyCtx
-	 * @param keepAlive
-	 */
-	public GatewayContext(String protocol, ChannelHandlerContext nettyCtx, boolean keepAlive,
-						  GatewayRequest request, Rule rule, int currentRetryTimes) {
-		super(protocol, nettyCtx, keepAlive);
-		this.request = request;
-		this.rule = rule;
-		this.currentRetryTimes = currentRetryTimes;
-	}
+    /**
+     * 静态内部类建造者模式
+     */
+    public static class Builder {
+        private String protocol;
+        private ChannelHandlerContext nettyCtx;
+        private GatewayRequest request;
+        private Rule rule;
+        private boolean keepAlive;
+        private int currentRetryTimes = 0;
 
+        public Builder setProtocol(String protocol) {
+            this.protocol = protocol;
+            return this;
+        }
 
-	public static class Builder {
-		private String protocol;
-		private ChannelHandlerContext nettyCtx;
-		private boolean keepAlive;
-		private GatewayRequest request;
-		private Rule rule;
+        public Builder setNettyCtx(ChannelHandlerContext nettyCtx) {
+            this.nettyCtx = nettyCtx;
+            return this;
+        }
 
-		private Builder() {
+        public Builder setRequest(GatewayRequest request) {
+            this.request = request;
+            return this;
+        }
 
-		}
+        public Builder setRule(Rule rule) {
+            this.rule = rule;
+            return this;
+        }
 
-		public Builder setProtocol(String protocol) {
-			this.protocol = protocol;
-			return this;
-		}
+        public Builder setKeepAlive(boolean keepAlive) {
+            this.keepAlive = keepAlive;
+            return this;
+        }
 
-		public Builder setNettyCtx(ChannelHandlerContext nettyCtx) {
-			this.nettyCtx = nettyCtx;
-			return this;
-		}
+        public Builder setCurrentRetryTimes(int currentRetryTimes) {
+            this.currentRetryTimes = currentRetryTimes;
+            return this;
+        }
 
-		public Builder setKeepAlive(boolean keepAlive) {
-			this.keepAlive = keepAlive;
-			return this;
-		}
+        public GatewayContext build() {
+            AssertUtil.notNull(protocol, "protocol can't be empty");
+            AssertUtil.notNull(nettyCtx, "nettyCtx can't be empty");
+            AssertUtil.notNull(rule, "rule can't be empty");
+            return new GatewayContext(protocol, keepAlive, nettyCtx, request, rule, currentRetryTimes);
+        }
+    }
 
-		public Builder setRequest(GatewayRequest request) {
-			this.request = request;
-			return this;
-		}
+    public Rule.FilterConfig getFilterConfig(String filterId) {
+        return rules.getFilterConfigById(filterId);
+    }
 
-		public Builder setRule(Rule rule) {
-			this.rule = rule;
-			return this;
-		}
+    public String getUniqueId() {
+        return request.getUniqueId();
+    }
 
-		public GatewayContext build() {
-			AssertUtil.notNull(protocol, "protocol 不能为空");
+    /**
+     *  资源释放,减少引用计数
+     */
+    @Override
+    public void releaseRequest() {
+        if (requestReleased.compareAndSet(false, true)) {
+            ReferenceCountUtil.release(request.getFullHttpRequest());
+        }
+    }
 
-			AssertUtil.notNull(nettyCtx, "nettyCtx 不能为空");
-
-			AssertUtil.notNull(request, "request 不能为空");
-
-			AssertUtil.notNull(rule, "rule 不能为空");
-			return new GatewayContext(protocol, nettyCtx, keepAlive, request, rule, 0);
-		}
-	}
-
-	@Override
-	public GatewayRequest getRequest() {
-		return request;
-	}
-
-	public void setRequest(GatewayRequest request) {
-		this.request = request;
-	}
-
-	@Override
-	public GatewayResponse getResponse() {
-		return response;
-	}
-
-	public void setResponse(Object response) {
-		this.response = (GatewayResponse) response;
-	}
-
-	@Override
-	public Rule getRule() {
-		return rule;
-	}
-
-	public void setRule(Rule rule) {
-		this.rule = rule;
-	}
-
-	public int getCurrentRetryTimes() {
-		return currentRetryTimes;
-	}
-
-	public void setCurrentRetryTimes(int currentRetryTimes) {
-		this.currentRetryTimes = currentRetryTimes;
-	}
-
-	/**
-	 * 根据过滤器ID获取对应的过滤器配置信息
-	 *
-	 * @param filterId
-	 * @return
-	 */
-	public Rule.FilterConfig getFilterConfig(String filterId) {
-		return rule.getFilterConfig(filterId);
-	}
-
-	public String getUniqueId() {
-		return request.getUniqueId();
-	}
-
-	/**
-	 * 重写父类释放资源方法，用于正在释放资源
-	 * release() 方法通常减少对象的引用计数。当计数达到零时，资源被释放。
-	 */
-	public void releaseRequest() {
-		if (requestReleased.compareAndSet(false, true)) {
-			ReferenceCountUtil.release(request.getFullHttpRequest());
-		}
-	}
-
-	/**
-	 * 获取原始的请求对象
-	 *
-	 * @return
-	 */
-	public GatewayRequest getOriginRequest() {
-		return request;
-	}
-
-
+    /**
+     * 获取指定 key 的上下文参数
+     * @param key
+     * @param defaultValue
+     * @param <T>
+     * @return
+     */
+    public <T> T getRequireAttribute(String key, T defaultValue) {
+        return (T) attributes.getOrDefault(key, defaultValue);
+    }
 }
