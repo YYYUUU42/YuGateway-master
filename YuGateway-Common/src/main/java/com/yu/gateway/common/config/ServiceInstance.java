@@ -8,161 +8,73 @@ import java.util.Objects;
 
 /**
  * @author yu
- * @description 一个服务定义会对应多个服务实例
+ * @description 服务实例，一个服务定义对应多个服务实例
  * @date 2024-03-31
  */
+@Getter
+@Setter
 public class ServiceInstance implements Serializable {
+    /**
+     * 服务实例ID————ip:port
+     */
+    protected String serviceInstanceId;
 
-	private static final long serialVersionUID = -7559569289189228478L;
+    /**
+     * 服务定义ID————serviceId:version
+     */
+    protected String uniqueId;
 
-	/**
-	 * 	服务实例ID: ip:port
-	 */
-	protected String serviceInstanceId;
-	
-	/**
-	 * 	服务定义唯一id： uniqueId
-	 */
-	protected String uniqueId;
+    /**
+     * 服务IP地址
+     */
+    protected String ip;
 
-	/**
-	 * 	服务实例地址： ip:port
-	 */
-	protected String ip;
+    protected int port;
 
-	protected int port;
-	
-	/**
-	 * 	标签信息
-	 */
-	protected String tags;
-	
-	/**
-	 * 	权重信息
-	 */
-	protected Integer weight;
-	
-	/**
-	 * 	服务注册的时间戳：后面我们做负载均衡，warmup预热
-	 */
-	protected long registerTime;
-	
-	/**
-	 * 	服务实例启用禁用
-	 */
-	protected boolean enable = true;
-	
-	/**
-	 * 	服务实例对应的版本号
-	 */
-	protected String version;
+    /**
+     * 服务标签信息
+     */
+    protected String tags;
 
-	/**
-	 * 服务实例是否是灰度的
-	 */
-	@Getter
-	@Setter
-	protected boolean gray;
-	public ServiceInstance() {
-		super();
-	}
+    /**
+     * 权重
+     */
+    protected Integer weight;
 
-	public String getServiceInstanceId() {
-		return serviceInstanceId;
-	}
+    /**
+     * 服务注册时间
+     */
+    protected long registerTime;
 
-	public void setServiceInstanceId(String serviceInstanceId) {
-		this.serviceInstanceId = serviceInstanceId;
-	}
+    /**
+     * 服务可用
+     */
+    protected boolean enable = true;
 
-	public String getUniqueId() {
-		return uniqueId;
-	}
+    /**
+     * 服务版本号
+     */
+    protected String version;
+    /**
+     * 是否灰度发布
+     */
+    protected boolean gray;
 
-	public void setUniqueId(String uniqueId) {
-		this.uniqueId = uniqueId;
-	}
 
-	public String getAddress() {
-		return uniqueId;
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (this == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ServiceInstance obj = (ServiceInstance) o;
+        return Objects.equals(obj.serviceInstanceId, serviceInstanceId);
+    }
 
-	public String getTags() {
-		return tags;
-	}
-
-	public void setTags(String tags) {
-		this.tags = tags;
-	}
-
-	public String getIp() {
-		return ip;
-	}
-
-	public void setIp(String ip) {
-		this.ip = ip;
-	}
-
-	public int getPort() {
-		return port;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
-	}
-
-	public Integer getWeight() {
-		return weight;
-	}
-
-	public void setWeight(Integer weight) {
-		this.weight = weight;
-	}
-
-	public long getRegisterTime() {
-		return registerTime;
-	}
-
-	public void setRegisterTime(long registerTime) {
-		this.registerTime = registerTime;
-	}
-
-	public boolean isEnable() {
-		return enable;
-	}
-
-	public void setEnable(boolean enable) {
-		this.enable = enable;
-	}
-
-	public String getVersion() {
-		return version;
-	}
-
-	public void setVersion(String version) {
-		this.version = version;
-	}
-
-	public static long getSerialversionuid() {
-		return serialVersionUID;
-	}
-	
-	
-	@Override
-	public boolean equals(Object o) {
-		if(this == o) {
-			return true;
-		}
-		if(this == null || getClass() != o.getClass()) {
-			return false;
-		}
-		ServiceInstance serviceInstance = (ServiceInstance)o;
-		return Objects.equals(serviceInstanceId, serviceInstance.serviceInstanceId);
-	}
-	
-	@Override
-	public int hashCode() {
-		return Objects.hash(serviceInstanceId);
-	}
-	
+    @Override
+    public int hashCode() {
+        return Objects.hash(serviceInstanceId);
+    }
 }

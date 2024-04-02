@@ -13,7 +13,7 @@ import java.util.Set;
 /**
  * @author yu
  * @description 核心请求url的规则匹配类
- * @date 2024-04-01
+ * @date 2024-03-31
  */
 @Getter
 @Setter
@@ -93,8 +93,12 @@ public class Rule implements Comparable<Rule>, Serializable {
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null || getClass() != obj.getClass()) return false;
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
             FilterConfig config = (FilterConfig) obj;
             return id.equals(config.id);
         }
