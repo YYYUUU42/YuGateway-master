@@ -19,7 +19,7 @@ public class Config {
     /**
      * 注册中心地址
      */
-    private String registryAddress = "192.168.220.1:8848";
+    private String registryAddress = "localhost:8848";
 
     /**
      * 多环境配置
