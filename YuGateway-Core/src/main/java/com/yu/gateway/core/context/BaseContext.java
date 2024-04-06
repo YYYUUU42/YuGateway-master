@@ -1,5 +1,6 @@
 package com.yu.gateway.core.context;
 
+import com.yu.gateway.common.config.Rule;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.util.ArrayList;
@@ -74,6 +75,16 @@ public class BaseContext implements IContext{
     @Override
     public String getProtocol() {
         return protocol;
+    }
+
+    /**
+     * 获取请求转换规则
+     *
+     * @return
+     */
+    @Override
+    public Rule getRule() {
+        return null;
     }
 
     @Override
