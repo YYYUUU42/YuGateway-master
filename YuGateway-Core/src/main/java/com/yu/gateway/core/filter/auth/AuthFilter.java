@@ -68,7 +68,7 @@ public class AuthFilter implements Filter {
                 ctx.getRequest().setUserId(userId);
                 log.info("AuthFilter 解析 token 成功, userId {}", userId);
             } catch (Exception e) {
-                log.info("AuthFilter parse token failed, requestPath {}", ctx.getRequest().getPath());
+                log.info("AuthFilter 解析 token 失败, 请求路径 {}", ctx.getRequest().getPath());
                 throw new ResponseException(ResponseCode.UNAUTHORIZED);
             }
         }

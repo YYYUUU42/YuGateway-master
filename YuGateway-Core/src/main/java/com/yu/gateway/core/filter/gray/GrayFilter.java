@@ -4,7 +4,6 @@ import com.yu.gateway.common.constant.FilterConst;
 import com.yu.gateway.core.context.GatewayContext;
 import com.yu.gateway.core.filter.Filter;
 import com.yu.gateway.core.filter.FilterAspect;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
