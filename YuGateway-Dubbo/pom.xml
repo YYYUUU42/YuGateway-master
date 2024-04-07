@@ -12,8 +12,8 @@
     <artifactId>YuGateway-Dubbo</artifactId>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>19</maven.compiler.source>
+        <maven.compiler.target>19</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <dubbo.version>3.2.0-beta.4</dubbo.version>
         <spring-boot.version>2.7.8</spring-boot.version>

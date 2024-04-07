@@ -12,8 +12,8 @@
     <artifactId>YuGateway-Core</artifactId>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>19</maven.compiler.source>
+        <maven.compiler.target>19</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hystrix.core.version>1.5.12</hystrix.core.version>
         <hystrix.javanica.version>1.5.12</hystrix.javanica.version>
