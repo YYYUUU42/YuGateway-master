@@ -61,8 +61,8 @@ public class NacosRegisterCenter implements RegisterCenter {
 	/**
 	 * 初始化
 	 *
-	 * @param registerAddress
-	 * @param env
+	 * @param registerAddress  注册中心地址
+	 * @param env  要注册到的环境
 	 */
 	@Override
 	public void init(String registerAddress, String env) {
@@ -80,11 +80,11 @@ public class NacosRegisterCenter implements RegisterCenter {
 	/**
 	 * 服务注册
 	 *
-	 * @param definition
-	 * @param serviceInstance
+	 * @param serviceDefinition 服务定义信息
+	 * @param serviceInstance 服务实例信息
 	 */
 	@Override
-	public void register(ServiceDefinition definition, ServiceInstance serviceInstance) {
+	public void register(ServiceDefinition serviceDefinition, ServiceInstance serviceInstance) {
 		try {
 			//构造 nacos 实例信息
 			Instance instance = new Instance();
@@ -96,29 +96,29 @@ public class NacosRegisterCenter implements RegisterCenter {
 			instance.setMetadata(Map.of(GatewayConst.META_DATA_KEY, JSON.toJSONString(serviceInstance)));
 
 			//注册
-			namingService.registerInstance(definition.getServiceId(), env, instance);
+			namingService.registerInstance(serviceDefinition.getServiceId(), env, instance);
 
 			//更新服务定义
-			namingMaintainService.updateService(definition.getServiceId(), env, 0,
-					Map.of(GatewayConst.META_DATA_KEY, JSON.toJSONString(definition)));
-			log.info("register {} {}", definition, serviceInstance);
+			namingMaintainService.updateService(serviceDefinition.getServiceId(), env, 0,
+					Map.of(GatewayConst.META_DATA_KEY, JSON.toJSONString(serviceDefinition)));
+			log.info("register {} {}", serviceDefinition, serviceInstance);
 		} catch (NacosException e) {
-			log.error("register {} failed", definition, e);
+			log.error("register {} failed", serviceDefinition, e);
 			throw new RuntimeException(e);
 		}
 	}
 
 	/**
 	 * 服务注销
-	 * @param definition
-	 * @param serviceInstance
+	 * @param serviceDefinition 服务定义信息
+	 * @param serviceInstance 服务实例信息
 	 */
 	@Override
-	public void deregister(ServiceDefinition definition, ServiceInstance serviceInstance) {
+	public void deregister(ServiceDefinition serviceDefinition, ServiceInstance serviceInstance) {
 		try {
-			namingService.deregisterInstance(definition.getServiceId(), env, serviceInstance.getIp(), serviceInstance.getPort());
+			namingService.deregisterInstance(serviceDefinition.getServiceId(), env, serviceInstance.getIp(), serviceInstance.getPort());
 		} catch (NacosException e) {
-			log.error("deregister {} failed", definition, e);
+			log.error("deregister {} failed", serviceDefinition, e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -126,7 +126,7 @@ public class NacosRegisterCenter implements RegisterCenter {
 	/**
 	 * 订阅所有服务
 	 *
-	 * @param registerCenterListener
+	 * @param registerCenterListener 注册中心监听器
 	 */
 	@Override
 	public void subscribeAllServices(RegisterCenterListener registerCenterListener) {
