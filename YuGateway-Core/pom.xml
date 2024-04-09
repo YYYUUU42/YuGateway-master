@@ -21,16 +21,10 @@
     </properties>
 
     <dependencies>
+
         <dependency>
             <groupId>com.yu</groupId>
             <artifactId>YuGateway-Common</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-
-        <!--导入注册中心这个对象-->
-        <dependency>
-            <groupId>com.yu</groupId>
-            <artifactId>YuGateway-Register-Center</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
@@ -39,6 +33,7 @@
             <artifactId>YuGateway-Config-Center</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
 
 
 
@@ -127,6 +122,18 @@
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
             <version>3.1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yu</groupId>
+            <artifactId>YuGateway-Register-Center-Api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yu</groupId>
+            <artifactId>YuGateway-Register-Center-Nacos-Impl</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
     </dependencies>

@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 
 
 
-public class NetUtils {
+public class NetUtil {
 
     /**
      * 	IP正则
@@ -89,7 +89,7 @@ public class NetUtils {
         int port = Integer.valueOf(blocks[1]);
 
         if ("0.0.0.0".equals(host)) {
-            return String.format("%s:%d", NetUtils.getLocalIp(), port);
+            return String.format("%s:%d", NetUtil.getLocalIp(), port);
         }
         return address;
     }
