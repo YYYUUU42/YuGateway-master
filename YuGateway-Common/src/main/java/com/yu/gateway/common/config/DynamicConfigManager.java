@@ -8,12 +8,9 @@ import java.util.stream.Collectors;
 
 /**
  * @author yu
- * @description 配置信息缓存类
- * @date 2024-04-02
- */
-/**
  * 1.缓存从配置中心获取的配置信息（Rule规则配置、Service服务配置）；
  * 2.动态更新配置信息；
+ * @date 2024-04-02
  */
 public class DynamicConfigManager {
     /**
@@ -81,9 +78,6 @@ public class DynamicConfigManager {
 
     /**
      * 根据服务ID获取服务实例
-     * @param uniqueId
-     * @param gray
-     * @return
      */
     public Set<ServiceInstance> getServiceInstanceByUniqueId(String uniqueId, boolean gray) {
         Set<ServiceInstance> instanceSet = serviceInstanceMap.get(uniqueId);
