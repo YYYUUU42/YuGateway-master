@@ -38,9 +38,6 @@ public class RandomLoadBalanceRule implements LoadBalanceRule {
 
 	/**
 	 * 根据服务 ID 获取负载均衡策略
-	 *
-	 * @param serviceId
-	 * @return
 	 */
 	public static RandomLoadBalanceRule getInstance(String serviceId) {
 		RandomLoadBalanceRule rule = loadBalanceMap.get(serviceId);
@@ -53,10 +50,6 @@ public class RandomLoadBalanceRule implements LoadBalanceRule {
 
 	/**
 	 * 负载均衡策略
-	 *
-	 * @param ctx
-	 * @param gray
-	 * @return
 	 */
 	@Override
 	public ServiceInstance choose(GatewayContext ctx, boolean gray) {
@@ -67,10 +60,6 @@ public class RandomLoadBalanceRule implements LoadBalanceRule {
 
 	/**
 	 * 根据服务ID获取服务实例
-	 *
-	 * @param serviceId
-	 * @param gray
-	 * @return
 	 */
 	@Override
 	public ServiceInstance chooseByServiceId(String serviceId, boolean gray) {

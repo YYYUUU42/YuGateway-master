@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RoundRobinLoadBalanceRule implements LoadBalanceRule{
     private static Map<String, RoundRobinLoadBalanceRule> loadBalanceRuleMap = new ConcurrentHashMap<>();
 
-    private AtomicInteger position = new AtomicInteger(0);
+    private AtomicInteger position = new AtomicInteger(1);
 
     private String serviceId;
 
@@ -33,6 +33,9 @@ public class RoundRobinLoadBalanceRule implements LoadBalanceRule{
         this.serviceId = serviceId;
     }
 
+    /**
+     * 根据服务 ID 获取负载均衡策略
+     */
     public static RoundRobinLoadBalanceRule getInstance(String serviceId) {
         RoundRobinLoadBalanceRule rule = loadBalanceRuleMap.get(serviceId);
         if (rule == null) {
@@ -42,6 +45,10 @@ public class RoundRobinLoadBalanceRule implements LoadBalanceRule{
         return rule;
     }
 
+
+    /**
+     * 通过上下文参数获取服务实例
+     */
     @Override
     public ServiceInstance choose(GatewayContext ctx, boolean gray) {
         // 获取上下文 Rule 对象
@@ -49,6 +56,9 @@ public class RoundRobinLoadBalanceRule implements LoadBalanceRule{
         return chooseByServiceId(rule.getServiceId(), gray);
     }
 
+    /**
+     * 通过服务ID拿到对应的服务实例
+     */
     @Override
     public ServiceInstance chooseByServiceId(String serviceId, boolean gray) {
         // 根据服务ID获取服务实例集合

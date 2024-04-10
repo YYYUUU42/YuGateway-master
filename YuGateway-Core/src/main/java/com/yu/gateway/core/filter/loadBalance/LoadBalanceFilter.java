@@ -65,13 +65,11 @@ public class LoadBalanceFilter implements Filter {
 
 	/**
 	 * 获取负载均衡策略
-	 *
-	 * @param context
-	 * @return
 	 */
 	public LoadBalanceRule getLoadBalanceRule(GatewayContext context) {
 		LoadBalanceRule balanceRule = null;
 		Rule rule = context.getRules();
+
 		if (rule != null) {
 			Set<Rule.FilterConfig> configFilters = rule.getFilterConfigs();
 			for (Rule.FilterConfig filterConfig : configFilters) {
@@ -79,6 +77,7 @@ public class LoadBalanceFilter implements Filter {
 					continue;
 				}
 				String filterId = filterConfig.getId();
+
 				// 解析Rule配置的过滤器属性，获取过滤器类型描述
 				if (filterId.equals(FilterConst.LOAD_BALANCE_FILTER_ID)) {
 					balanceRule = parseLoadBalanceConfig(filterConfig.getConfig(), rule.getServiceId());
@@ -92,10 +91,6 @@ public class LoadBalanceFilter implements Filter {
 
 	/**
 	 * 解析负载均衡配置
-	 *
-	 * @param config
-	 * @param serviceId
-	 * @return
 	 */
 	private LoadBalanceRule parseLoadBalanceConfig(String config, String serviceId) {
 		String strategy = FilterConst.LOAD_BALANCE_STRATEGY_RANDOM;
@@ -108,20 +103,15 @@ public class LoadBalanceFilter implements Filter {
 
 	/**
 	 * 根据策略获取负载均衡规则
-	 *
-	 * @param strategy
-	 * @param serviceId
-	 * @return
 	 */
 	private LoadBalanceRule getLoadBalanceRuleByStrategy(String strategy, String serviceId) {
-		switch (strategy) {
-			case FilterConst.LOAD_BALANCE_STRATEGY_RANDOM:
-				return RandomLoadBalanceRule.getInstance(serviceId);
-			case FilterConst.LOAD_BALANCE_STRATEGY_ROUND_ROBIN:
-				return RoundRobinLoadBalanceRule.getInstance(serviceId);
-			default:
+		return switch (strategy) {
+			case FilterConst.LOAD_BALANCE_STRATEGY_RANDOM -> RandomLoadBalanceRule.getInstance(serviceId);
+			case FilterConst.LOAD_BALANCE_STRATEGY_ROUND_ROBIN -> RoundRobinLoadBalanceRule.getInstance(serviceId);
+			default -> {
 				logger.warn("No load balance rule can be loaded for service={}, using default strategy: {}", serviceId, strategy);
-				return RandomLoadBalanceRule.getInstance(serviceId);
-		}
+				yield RandomLoadBalanceRule.getInstance(serviceId);
+			}
+		};
 	}
 }
