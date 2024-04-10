@@ -67,7 +67,7 @@ public class NettyHttpServer implements LifeCycle {
 
 	/**
 	 * 初始化服务器，设置线程组和选择线程模型
-	 * 如果系统支持Epoll，将创建Epoll事件循环组，否则创建NIO事件循环组。这些事件循环组用于处理服务器的网络事件。
+	 * 如果系统支持 Epoll，将创建 Epoll 事件循环组，否则创建 NIO 事件循环组。这些事件循环组用于处理服务器的网络事件。
 	 */
 	@Override
 	public void init() {
@@ -88,8 +88,6 @@ public class NettyHttpServer implements LifeCycle {
 	/**
 	 * 是否选用 epoll 优化IO
 	 * 检查当前系统是否可以使用Epoll事件模型。它返回一个布尔值，表示是否可以使用Epoll。Epoll是一种在Linux系统上提供更高性能的事件模型。
-	 *
-	 * @return
 	 */
 	public boolean useEpoll() {
 		return RemotingUtil.isIsLinuxPlatform() && Epoll.isAvailable();

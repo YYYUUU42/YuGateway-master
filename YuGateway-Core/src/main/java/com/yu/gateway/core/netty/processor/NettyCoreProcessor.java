@@ -64,14 +64,14 @@ public class NettyCoreProcessor implements NettyProcessor {
 	}
 
 	/**
-	 * 启动 NettyCoreProcessor。（目前为空方法）
+	 * 启动 NettyCoreProcessor
 	 */
 	@Override
 	public void start() {
 	}
 
 	/**
-	 * 关闭 NettyCoreProcessor。（目前为空方法）
+	 * 关闭 NettyCoreProcessor
 	 */
 	@Override
 	public void shutDown() {

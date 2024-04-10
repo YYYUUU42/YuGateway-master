@@ -61,6 +61,6 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         // 调用父类的 exceptionCaught 方法，它将按照 ChannelPipeline 中的下一个处理器继续处理异常
         super.exceptionCaught(ctx, cause);
-        log.error("Netty occur exception", cause.getMessage());
+        log.error("Netty occur exception", cause);
     }
 }

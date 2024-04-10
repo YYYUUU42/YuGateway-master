@@ -12,7 +12,6 @@ public interface NettyProcessor {
 
     /**
      * 处理请求
-     * @param wrapper
      */
     void process(HttpRequestWrapper wrapper);
 
