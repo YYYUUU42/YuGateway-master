@@ -1,0 +1,4 @@
+
+com.yu.gateway.core.filter.router.RouterFilter
+com.yu.gateway.core.filter.gray.GrayFilter
+com.yu.gateway.core.filter.auth.AuthFilter
