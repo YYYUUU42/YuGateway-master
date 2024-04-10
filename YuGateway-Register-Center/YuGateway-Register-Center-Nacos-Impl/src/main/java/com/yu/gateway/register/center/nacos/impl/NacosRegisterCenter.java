@@ -139,31 +139,10 @@ public class NacosRegisterCenter implements RegisterCenter {
 		doSubscribeServices();
 
 		//可能有新服务加入，所以需要有一个定时任务来检查
-		ScheduledExecutorService scheduledPool = (ScheduledExecutorService) new ThreadPoolExecutor(
-				// 核心线程数
-				1,
-				// 最大线程数，此处保持与核心线程数一致，因为只需要一个定时任务线程
-				1,
-				// 线程空闲存活时间
-				60L,
-				// 时间单位
-				TimeUnit.SECONDS,
-				// 使用无界队列，但此处应考虑实际需求，可能需要设置适当容量的有界队列
-				new LinkedBlockingQueue<>(),
-				// 线程工厂
-				new NameThreadFactory("doSubscribeAllServices"),
-				// 拒绝策略，这里仅作为示例，实际应根据业务需求选择或自定义拒绝策略
-				new ThreadPoolExecutor.AbortPolicy()
-		);
-
-		//循环执行服务发现与订阅操作使用，Lambda 表达式捕获异常并处理
-		scheduledPool.scheduleWithFixedDelay(() -> {
-			try {
-				doSubscribeServices();
-			} catch (Exception e) {
-				log.error("doSubscribeAllServices failed", e);
-			}
-		}, 10, 10, TimeUnit.SECONDS);
+		ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1, new NameThreadFactory(
+				"doSubscribeAllServices"));
+		//循环执行服务发现与订阅操作
+		scheduledThreadPool.scheduleWithFixedDelay(() -> doSubscribeServices(), 10, 10, TimeUnit.SECONDS);
 	}
 
 	/**
