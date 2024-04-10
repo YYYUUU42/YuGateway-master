@@ -53,7 +53,7 @@ public class NacosConfigCenter implements ConfigCenter {
 		try {
 			this.configService = NacosFactory.createConfigService(serverAddr);
 		} catch (NacosException e) {
-			log.error("NacosConfigCenter init failed {}", e);
+			log.error("NacosConfigCenter init failed ", e);
 			throw new RuntimeException(e);
 		}
 	}
