@@ -1,8 +1,6 @@
 package com.yu.gateway.core.filter.auth;
 
 import com.alibaba.fastjson.JSON;
-import com.sun.org.slf4j.internal.Logger;
-import com.sun.org.slf4j.internal.LoggerFactory;
 import com.yu.gateway.common.config.Rule;
 import com.yu.gateway.common.constant.FilterConst;
 import com.yu.gateway.common.enums.ResponseCode;
@@ -19,6 +17,8 @@ import io.jsonwebtoken.impl.DefaultClaims;
 import io.netty.handler.codec.http.cookie.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.Map;
