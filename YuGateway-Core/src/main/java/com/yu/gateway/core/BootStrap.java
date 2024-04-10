@@ -6,6 +6,7 @@ import com.yu.gateway.common.config.ServiceDefinition;
 import com.yu.gateway.common.config.ServiceInstance;
 import com.yu.gateway.common.constant.BasicConst;
 import com.yu.gateway.common.utils.*;
+import com.yu.gateway.config.center.api.ConfigCenter;
 import com.yu.gateway.register.center.api.RegisterCenter;
 import com.yu.gateway.register.center.api.RegisterCenterListener;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,18 @@ public class BootStrap {
 
 		//插件初始化
 		//配置中心管理器初始化，连接配置中心，监听配置的新增、修改、删除
+		ServiceLoader<ConfigCenter> serviceLoader = ServiceLoader.load(ConfigCenter.class);
+		final ConfigCenter configCenter = serviceLoader.findFirst().orElseThrow(() -> {
+			log.error("can't found ConfigCenter impl");
+			return new RuntimeException("can't found ConfigCenter impl");
+		});
+
+		//从配置中心获取数据
+		configCenter.init(config.getRegistryAddress(), config.getEnv());
+		configCenter.subscribeRulesChange(rules -> {
+			DynamicConfigManager.getInstance().putAllRule(rules);
+		});
+
 		//启动容器
 		Container container = new Container(config);
 		container.start();
@@ -61,6 +74,8 @@ public class BootStrap {
 			log.error("not found RegisterCenter impl");
 			return new RuntimeException("not found RegisterCenter impl");
 		});
+
+
 		registerCenter.init(config.getRegistryAddress(), config.getEnv());
 
 		//构造网关服务定义和服务实例
