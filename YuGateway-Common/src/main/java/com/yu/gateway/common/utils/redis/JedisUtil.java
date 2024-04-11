@@ -10,10 +10,15 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class JedisUtil {
     public static ReentrantLock lock = new ReentrantLock();
+
     private final String DIST_LOCK_SUCCESS = "OK";
+
     private final Long DIST_LOCK_RELEASE_SUCCESS = 1L;
+
     private final String SET_IF_NOT_EXISTS = "NX";
+
     private final String SET_WITH_EXPIRE_TIME = "PX";
+
     private JedisPoolUtil jedisPool = new JedisPoolUtil();
 
     public boolean isExist(String key) {
@@ -102,6 +107,9 @@ public class JedisUtil {
         }
     }
 
+    /**
+     * 设置key的过期时间
+     */
     public boolean setExpire(String key, int seconds) {
         Jedis jedis = jedisPool.getJedis();
         try {
@@ -312,10 +320,7 @@ public class JedisUtil {
         try {
             String releaseScript = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
             Object result = jedis.eval(releaseScript, Collections.singletonList(lockKey), Collections.singletonList(requestId));
-            if (DIST_LOCK_RELEASE_SUCCESS.equals(result)) {
-                return true;
-            }
-            return false;
+            return DIST_LOCK_RELEASE_SUCCESS.equals(result);
         } catch (Exception e) {
             log.debug("releaseDistributeLock throws:{}", e.getMessage());
         } finally {
@@ -330,6 +335,9 @@ public class JedisUtil {
         }
     }
 
+    /**
+     * 限流脚本
+     */
     public Object executeScript(String key, int limit, int expire) {
         Jedis jedis = jedisPool.getJedis();
         String lua = buildLuaScript();
@@ -339,14 +347,12 @@ public class JedisUtil {
             System.out.println(result);
             return result;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("executeScript throws:", e);
         } finally {
-            if (jedis != null) {
-                try {
-                    jedis.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            try {
+                jedis.close();
+            } catch (Exception e) {
+                log.error("executeScript close jedis throws:", e);
             }
         }
         return null;
@@ -357,7 +363,6 @@ public class JedisUtil {
      * 1.key对应value每次增加1；
      * 2.如果 value==1，第一次设置值时设置过期时间；
      * 3.否则检查 value > limit，超过返回0，否则返回1
-     * @return
      */
     public static String buildLuaScript() {
         String lua = "local num = redis.call('incr', KEYS[1])\n" +
@@ -370,5 +375,39 @@ public class JedisUtil {
                 "\treturn 1\n" +
                 "end\n";
         return lua;
+    }
+
+    /**
+     * 递增操作
+     */
+    public Long increment(String key) {
+        Jedis jedis = jedisPool.getJedis();
+        try {
+            return jedis.incr(key);
+        } catch (Exception e) {
+            log.error("increment key {} throws:{}", key, e.getMessage());
+        } finally {
+            close(jedis);
+        }
+        return null;
+    }
+
+    /**
+     * 执行 Lua 脚本
+     * 1.key 对应 value 每次增加 1；
+     * 2.如果 value == 1，第一次设置值时设置过期时间；
+     * 3.否则检查 value > limit，超过返回 0，否则返回 1
+     *
+     * @param script 表示要执行的 Lua 脚本
+     * @param keys   表示Lua脚本中使用的 key
+     * @param args   表示Lua脚本中使用的参数
+     */
+    public Object executeLuaScript(String script, List<String> keys, String... args) {
+        try (Jedis jedis = jedisPool.getJedis()) {
+            return jedis.eval(script, keys, Arrays.asList(args));
+        } catch (Exception e) {
+            log.error("executeLuaScript throws:", e);
+        }
+        return null;
     }
 }
