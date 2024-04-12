@@ -120,31 +120,25 @@ public class Rule implements Comparable<Rule>, Serializable {
      */
     @Data
     public static class HystrixConfig {
-        // 熔断降级路径
+        /**
+         * 熔断降级路径
+         */
         private String path;
-        // 超时时间
+
+        /**
+         * 超时时间
+         */
         private int timeoutInMilliseconds;
-        // 核心线程数量
+
+        /**
+         * 核心线程数量
+         */
         private int coreThreadSize;
-        // 熔断降级响应
+
+        /**
+         * 熔断降级响应
+         */
         private String fallbackResponse;
-
-        @Override
-        public boolean equals(Object obj) {
-            if(this == obj) {
-                return true;
-            }
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            HystrixConfig config = (HystrixConfig) obj;
-            return (config.path.equals(this.path)) && (config.timeoutInMilliseconds == this.timeoutInMilliseconds) && (config.coreThreadSize == this.coreThreadSize);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(new String[]{path, String.valueOf(timeoutInMilliseconds), String.valueOf(coreThreadSize)});
-        }
     }
     /**
      * 限流过滤器配置
