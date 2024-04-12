@@ -7,6 +7,20 @@ package com.yu.gateway.common.constant;
  */
 public interface FilterConst {
     /**
+     * Prometheus 入口过滤器
+     */
+    String MONITOR_FILTER_ID = "monitor_filter";
+    String MONITOR_FILTER_NAME = "monitor_filter";
+    int MONITOR_FILTER_ORDER = -1;
+
+    /**
+     * Prometheus 出口过滤器
+     */
+    String MONITOR_END_FILTER_ID = "monitor_end_filter";
+    String MONITOR_END_FILTER_NAME = "monitor_end_filter";
+    int MONITOR_END_FILTER_ORDER = Integer.MAX_VALUE - 1;
+
+    /**
      * 负载均衡过滤器
      */
     String LOAD_BALANCE_FILTER_ID = "load_balance_filter";
