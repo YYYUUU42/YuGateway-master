@@ -11,6 +11,8 @@ import lombok.Data;
 public class Config {
     private int port = 8888;
 
+    private int prometheusPort = 18000;
+
     /**
      * 服务名
      */
@@ -19,7 +21,7 @@ public class Config {
     /**
      * 注册中心地址
      */
-    private String registryAddress = "localhost:8848";
+    private String registryAddress = "127.0.0.1:8848";
 
     /**
      * 多环境配置
