@@ -4,6 +4,7 @@ import com.yu.gateway.common.config.Rule;
 import com.yu.gateway.common.utils.AssertUtil;
 import com.yu.gateway.core.request.GatewayRequest;
 import com.yu.gateway.core.response.GatewayResponse;
+import io.micrometer.core.instrument.Timer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCountUtil;
 import lombok.Getter;
@@ -43,6 +44,13 @@ public class GatewayContext extends BaseContext {
      * 最大重试次数
      */
     private int currentRetryTimes;
+
+    /**
+     * 记录应用程序中的方法调用或服务请求所花费的时间
+     */
+    @Setter
+    @Getter
+    private Timer.Sample timerSample;
 
     public static Builder newBuilder() {
         return new Builder();
@@ -124,10 +132,6 @@ public class GatewayContext extends BaseContext {
 
     /**
      * 获取指定 key 的上下文参数
-     * @param key
-     * @param defaultValue
-     * @param <T>
-     * @return
      */
     public <T> T getRequireAttribute(String key, T defaultValue) {
         return (T) attributes.getOrDefault(key, defaultValue);
