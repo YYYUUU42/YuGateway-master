@@ -29,26 +29,19 @@ public class GatewayFilterChain {
 
 
 	/**
-	 * 执行过滤器处理流程
-	 *
-	 * @param ctx
-	 * @return
-	 * @throws Exception
+	 * 执行过滤器链
 	 */
-	public GatewayContext doFilter(GatewayContext ctx) throws Exception {
+	public GatewayContext doFilter(GatewayContext ctx) {
 		if (filters.isEmpty()) {
 			return ctx;
 		}
 		try {
-			for (Filter fl : filters) {
-				fl.doFilter(ctx);
-				if (ctx.isTerminated()) {
-					break;
-				}
+			for (Filter filter : filters) {
+				filter.doFilter(ctx);
 			}
 		} catch (Exception e) {
-			log.error("执行过滤器发生异常,异常信息：", e);
-			throw e;
+			log.error("执行过滤器发生异常: {}", e.getMessage());
+			throw new RuntimeException(e);
 		}
 		return ctx;
 	}

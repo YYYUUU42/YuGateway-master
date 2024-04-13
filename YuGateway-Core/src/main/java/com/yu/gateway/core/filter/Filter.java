@@ -12,16 +12,11 @@ import com.yu.gateway.core.context.GatewayContext;
 public interface Filter {
     /**
      * 执行过滤器
-     *
-     * @param ctx
-     * @throws Exception
      */
     void doFilter(GatewayContext ctx) throws Exception;
 
     /**
      * 获取过滤器执行顺序
-     *
-     * @return
      */
     default int getOrder() {
         FilterAspect aspect = this.getClass().getAnnotation(FilterAspect.class);
