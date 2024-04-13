@@ -64,6 +64,7 @@ public class GatewayFilterChainFactory implements FilterChainFactory{
 			if (StringUtils.isEmpty(filterId)) {
 				filterId = filter.getClass().getName();
 			}
+
 			processorFilterIdMap.put(filterId, filter);
 			processFilterIdName.put(filterId, annotation.name());
 		});
@@ -130,6 +131,13 @@ public class GatewayFilterChainFactory implements FilterChainFactory{
 		//添加到链表中
 		chain.addFilterList(contextFilters);
 		return chain;
+	}
+
+	/**
+	 * 测试
+	 */
+	public static void main(String[] args) {
+		new GatewayFilterChainFactory();
 	}
 
 }
