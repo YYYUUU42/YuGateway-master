@@ -4,6 +4,8 @@ import com.yu.gateway.common.enums.ResponseCode;
 import com.yu.gateway.common.exception.BaseException;
 import com.yu.gateway.core.context.GatewayContext;
 import com.yu.gateway.core.context.HttpRequestWrapper;
+import com.yu.gateway.core.filter.FilterChainFactory;
+import com.yu.gateway.core.filter.GatewayFilterChainFactory;
 import com.yu.gateway.core.helper.RequestHelper;
 import com.yu.gateway.core.helper.ResponseHelper;
 import io.netty.channel.ChannelFutureListener;
@@ -21,6 +23,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class NettyCoreProcessor implements NettyProcessor {
+	/**
+	 * 过滤器链工厂
+	 */
+	private FilterChainFactory chainFactory = GatewayFilterChainFactory.getInstance();
 
 
 	/**
@@ -36,6 +42,9 @@ public class NettyCoreProcessor implements NettyProcessor {
 		try {
 			// 创建并填充 GatewayContext 以保存有关传入请求的信息。
 			GatewayContext gatewayContext = RequestHelper.doContext(request, ctx);
+
+			// 组装过滤器并执行过滤操作
+			chainFactory.buildFilterChain(gatewayContext).doFilter(gatewayContext);
 		} catch (BaseException e) {
 			// 通过记录日志并发送适当的 HTTP 响应处理已知异常。
 			log.error("处理错误 {} {}", e.getCode().getCode(), e.getCode().getMessage());
