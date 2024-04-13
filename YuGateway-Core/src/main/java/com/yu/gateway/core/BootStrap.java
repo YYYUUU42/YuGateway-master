@@ -2,15 +2,18 @@ package com.yu.gateway.core;
 
 import com.alibaba.fastjson.JSON;
 import com.yu.gateway.common.config.DynamicConfigManager;
+import com.yu.gateway.common.config.Rule;
 import com.yu.gateway.common.config.ServiceDefinition;
 import com.yu.gateway.common.config.ServiceInstance;
 import com.yu.gateway.common.constant.BasicConst;
 import com.yu.gateway.common.utils.*;
 import com.yu.gateway.config.center.api.ConfigCenter;
+import com.yu.gateway.config.center.api.RulesChangeListener;
 import com.yu.gateway.register.center.api.RegisterCenter;
 import com.yu.gateway.register.center.api.RegisterCenterListener;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
@@ -37,8 +40,11 @@ public class BootStrap {
 
 		//从配置中心获取数据
 		configCenter.init(config.getRegistryAddress(), config.getEnv());
-		configCenter.subscribeRulesChange(rules -> {
-			DynamicConfigManager.getInstance().putAllRule(rules);
+		configCenter.subscribeRulesChange(new RulesChangeListener() {
+			@Override
+			public void onRulesChange(List<Rule> rules) {
+				DynamicConfigManager.getInstance().putAllRule(rules);
+			}
 		});
 
 		//启动容器
