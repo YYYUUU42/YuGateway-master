@@ -23,8 +23,6 @@ public class AbstractServiceInvoker implements ServiceInvoker {
 
 	/**
 	 * 获取服务方法调用超时时间
-	 *
-	 * @return
 	 */
 	@Override
 	public long getTimeOut() {
@@ -33,8 +31,6 @@ public class AbstractServiceInvoker implements ServiceInvoker {
 
 	/**
 	 * 设置该服务调用(方法)的超时时间
-	 *
-	 * @param timeout
 	 */
 	@Override
 	public void setTimeOut(long timeout) {
