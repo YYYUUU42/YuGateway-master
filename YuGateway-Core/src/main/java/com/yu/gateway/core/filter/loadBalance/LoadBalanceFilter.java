@@ -108,6 +108,7 @@ public class LoadBalanceFilter implements Filter {
 		return switch (strategy) {
 			case FilterConst.LOAD_BALANCE_STRATEGY_RANDOM -> RandomLoadBalanceRule.getInstance(serviceId);
 			case FilterConst.LOAD_BALANCE_STRATEGY_ROUND_ROBIN -> RoundRobinLoadBalanceRule.getInstance(serviceId);
+			case FilterConst.LOAD_BALANCE_STRATEGY_WEIGHT_RANDOM -> WeightedRoundRobinLoadBalanceRule.getInstance(serviceId);
 			default -> {
 				logger.warn("No load balance rule can be loaded for service={}, using default strategy: {}", serviceId, strategy);
 				yield RandomLoadBalanceRule.getInstance(serviceId);
