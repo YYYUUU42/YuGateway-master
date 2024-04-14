@@ -65,7 +65,9 @@ public class Rule implements Comparable<Rule>, Serializable {
     /**
      * 规则过滤器
      */
-    public static class FilterConfig {
+    @Setter
+	@Getter
+	public static class FilterConfig {
         /**
          * 过滤器唯一Id
          */
@@ -78,20 +80,7 @@ public class Rule implements Comparable<Rule>, Serializable {
          */
         private String config;
 
-        public String getId() {
-            return id;
-        }
-        public void setId(String id) {
-            this.id = id;
-        }
-        public String getConfig() {
-            return config;
-        }
-        public void setConfig(String config) {
-            this.config = config;
-        }
-
-        @Override
+		@Override
         public boolean equals(Object obj) {
             if (this == obj) {
                 return true;
