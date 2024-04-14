@@ -13,7 +13,6 @@
         <module>YuGateway-Common</module>
         <module>YuGateway-Config-Center</module>
         <module>YuGateway-Core</module>
-        <module>YuGateway-Dubbo</module>
         <module>YuGateway-HttpServer</module>
         <module>YuGateway-Register-Center</module>
     </modules>
