@@ -44,6 +44,9 @@ import static com.yu.gateway.common.constant.FilterConst.*;
 @FilterAspect(id = ROUTER_FILTER_ID, name = ROUTER_FILTER_NAME, order = ROUTER_FILTER_ORDER)
 public class RouterFilter implements Filter {
 
+	/**
+	 * 熔断降级的配置
+	 */
 	private ConcurrentHashMap<String, RouterHystrixCommand> commandMap = new ConcurrentHashMap<>();
 
 	/**
@@ -53,6 +56,7 @@ public class RouterFilter implements Filter {
 	public void doFilter(GatewayContext gatewayContext) throws Exception {
 		//首先获取熔断降级的配置
 		Optional<Rule.HystrixConfig> hystrixConfig = getHystrixConfig(gatewayContext);
+
 		//如果存在对应配置就走熔断降级的逻辑
 		if (hystrixConfig.isPresent()) {
 			routeWithHystrix(gatewayContext, hystrixConfig);
@@ -109,6 +113,7 @@ public class RouterFilter implements Filter {
 	private void routeWithHystrix(GatewayContext gatewayContext, Optional<Rule.HystrixConfig> hystrixConfig) {
 		String key = gatewayContext.getUniqueId() + "." + gatewayContext.getRequest().getPath();
 		RouterHystrixCommand proxyCommand = null;
+
 		if (commandMap.containsKey(key)) {
 			proxyCommand = commandMap.get(key);
 			if (!hystrixConfig.get().equals(commandMap.get(key))) {
@@ -130,18 +135,31 @@ public class RouterFilter implements Filter {
 	 * 响应回调处理
 	 */
 	private void complete(Request request, Response response, Throwable throwable, GatewayContext gatewayContext) {
-// 请求已经处理完毕 释放请求资源
+		// 请求已经处理完毕 释放请求资源
 		gatewayContext.releaseRequest();
+
 		// 获取上下文请求配置规则
 		Rule rule = gatewayContext.getRules();
+
 		// 获取重试次数
 		int currentRetryTimes = gatewayContext.getCurrentRetryTimes();
 		int confRetryTimes = rule.getRetryConfig().getTimes();
+
 		// 异常重试
-		if ((throwable instanceof TimeoutException || throwable instanceof IOException) &&
-				currentRetryTimes <= confRetryTimes) {
+		if ((throwable instanceof TimeoutException
+				|| throwable instanceof IOException)
+				&& currentRetryTimes <= confRetryTimes) {
 			doRetry(gatewayContext, currentRetryTimes);
 		}
+
+		// 处理响应
+		handleResponse(request, response, throwable, gatewayContext);
+	}
+
+	/**
+	 * 处理HTTP响应
+	 */
+	private void handleResponse(Request request, Response response, Throwable throwable, GatewayContext gatewayContext) {
 		String url = request.getUrl();
 		try {
 			if (Objects.nonNull(throwable)) {
@@ -149,28 +167,20 @@ public class RouterFilter implements Filter {
 					log.warn("complete timeout {}", url);
 					gatewayContext.setThrowable(throwable);
 					gatewayContext.setResponse(GatewayResponse.buildGatewayResponse(ResponseCode.REQUEST_TIMEOUT));
-				} else {
+				} else if (throwable instanceof IOException) {
 					gatewayContext.setThrowable(new ConnectException(throwable, gatewayContext.getUniqueId(), url, ResponseCode.HTTP_RESPONSE_ERROR));
 					gatewayContext.setResponse(GatewayResponse.buildGatewayResponse(ResponseCode.HTTP_RESPONSE_ERROR));
 				}
 			} else {
 				gatewayContext.setResponse(GatewayResponse.buildGatewayResponse(response));
 			}
-		} catch (Throwable t) {
+		} catch (Exception e) {
 			gatewayContext.setThrowable(new ResponseException(ResponseCode.INTERNAL_ERROR));
 			gatewayContext.setResponse(GatewayResponse.buildGatewayResponse(ResponseCode.INTERNAL_ERROR));
-			log.error("complete process failed", t);
+			log.error("complete process failed", e);
 		} finally {
 			gatewayContext.setContextStatus(ContextStatus.Written);
 			ResponseHelper.writeResponse(gatewayContext);
-			log.info("{} {} {} {} {} {} {}",
-					System.currentTimeMillis() - gatewayContext.getRequest().getBeginTime(),
-					gatewayContext.getRequest().getClientIp(),
-					gatewayContext.getRequest().getUniqueId(),
-					gatewayContext.getRequest().getMethod(),
-					gatewayContext.getRequest().getPath(),
-					gatewayContext.getResponse().getHttpResponseStatus().code(),
-					gatewayContext.getResponse().getFutureResponse().getResponseBodyAsBytes().length);
 		}
 	}
 
@@ -248,7 +258,8 @@ public class RouterFilter implements Filter {
 				Field field = HystrixPropertiesFactory.class.getDeclaredField("commandProperties");
 				field.setAccessible(true);
 				ConcurrentHashMap<String, HystrixCommandProperties> commandProperties = (ConcurrentHashMap<String, HystrixCommandProperties>) field.get(null);
-				System.out.println(commandProperties.toString());
+
+				log.info("before update HystrixCommandProperties: {}", commandProperties.get(commandKey));
 				commandProperties.remove(commandKey);
 			} catch (NoSuchFieldException | IllegalAccessException e) {
 				log.error("Remove cache in HystrixCommandFactory failed, commandKey: {}", commandKey, e);
