@@ -3,6 +3,7 @@ package com.yu.gateway.core;
 import com.yu.gateway.common.constant.GatewayConst;
 import com.yu.gateway.core.netty.NettyHttpClient;
 import com.yu.gateway.core.netty.NettyHttpServer;
+import com.yu.gateway.core.netty.processor.DisruptorNettyCoreProcessor;
 import com.yu.gateway.core.netty.processor.NettyCoreProcessor;
 import com.yu.gateway.core.netty.processor.NettyProcessor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +30,7 @@ public class Container implements LifeCycle{
         NettyCoreProcessor nettyCoreProcessor = new NettyCoreProcessor();
         // 多生产者多消费者模式
         if (GatewayConst.BUFFER_TYPE_PARALLEL.equals(config.getBufferType())) {
-//            this.nettyProcessor = new DisruptorNettyCoreProcessor(config, nettyCoreProcessor);
-            this.nettyProcessor = nettyCoreProcessor;
+            this.nettyProcessor = new DisruptorNettyCoreProcessor(config, nettyCoreProcessor);
         } else {
             this.nettyProcessor = nettyCoreProcessor;
         }
