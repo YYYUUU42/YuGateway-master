@@ -1,4 +1,4 @@
-package com.yu.gateway.httpServer.controller;
+package com.yu.gateway.httpService.controller;
 
 import com.yu.gateway.client.api.ApiInvoker;
 import com.yu.gateway.client.api.ApiProperties;
@@ -9,11 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * @author yu
- * @description
- * @date 2024-04-14
- */
+
 @RestController
 @ApiService(serviceId = "backend-http-server", protocol = ApiProtocol.HTTP, patternPath = "/http-server/**")
 @Slf4j
@@ -26,6 +22,6 @@ public class HttpController {
 	@GetMapping("/http-server/ping")
 	public String ping() {
 		log.info("{}", apiProperties);
-		return "pong";
+		return "pong1";
 	}
 }

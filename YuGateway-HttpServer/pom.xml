@@ -10,6 +10,11 @@
     </parent>
 
     <artifactId>YuGateway-HttpServer</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>YuGateway-http-1</module>
+        <module>YuGateway-http-2</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>19</maven.compiler.source>
