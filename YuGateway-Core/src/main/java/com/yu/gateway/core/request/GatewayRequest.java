@@ -7,8 +7,7 @@ import com.yu.gateway.common.utils.TimeUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.asynchttpclient.Request;
@@ -23,106 +22,91 @@ import java.util.*;
  * @date 2024-03-31
  */
 @Slf4j
+@Data
 public class GatewayRequest implements IGatewayRequest{
 
     /**
      * 服务ID
      */
-    @Getter
     private final String uniqueId;
 
     /**
      * 请求进入网关时间
      */
-    @Getter
     private final long beginTime;
 
     /**
      * 字符集不会变的
      */
-    @Getter
     private final  Charset charset;
 
     /**
      * 客户端的IP，主要用于做流控、黑白名单
      */
-    @Getter
     private final String clientIp;
 
     /**
      * 请求的地址：IP：port
      */
-    @Getter
     private final String host;
 
     /**
      *  请求的路径   /XXX/XXX/XX
      */
-    @Getter
     private final String path;
 
     /**
      * URI：统一资源标识符，/XXX/XXX/XXX?attr1=value&attr2=value2
      * URL：统一资源定位符，它只是URI的子集一个实现
      */
-    @Getter
     private final String uri;
 
     /**
      * 请求方法 post/put/GET
      */
-    @Getter
     private final HttpMethod method;
 
     /**
      * 请求的格式
      */
-    @Getter
     private final String contentType;
 
     /**
      * 请求头信息
      */
-    @Getter
     private final HttpHeaders headers;
 
     /**
      * 参数解析器
      */
-    @Getter
     private final QueryStringDecoder queryStringDecoder;
 
     /**
      * FullHttpRequest
      */
-    @Getter
     private final FullHttpRequest fullHttpRequest;
 
     /**
      * 请求体
      */
-    @Getter
     private String body;
 
 
-    @Setter
-    @Getter
     private long userId;
 
     /**
      * 请求Cookie
      */
-    @Getter
     private Map<String,io.netty.handler.codec.http.cookie.Cookie> cookieMap;
 
     /**
      * post请求定义的参数结合
      */
-    @Getter
     private Map<String,List<String>> postParameters;
 
 
     /******可修改的请求变量***************************************/
+
     /**
      * 可修改的Scheme，默认是http://
      */
@@ -139,15 +123,6 @@ public class GatewayRequest implements IGatewayRequest{
 
     /**
      * 构造器
-     * @param uniqueId
-     * @param charset
-     * @param clientIp
-     * @param host
-     * @param uri
-     * @param method
-     * @param contentType
-     * @param headers
-     * @param fullHttpRequest
      */
     public GatewayRequest(String uniqueId, Charset charset, String clientIp, String host, String uri, HttpMethod method, String contentType, HttpHeaders headers, FullHttpRequest fullHttpRequest) {
         this.uniqueId = uniqueId;
@@ -179,7 +154,6 @@ public class GatewayRequest implements IGatewayRequest{
 
     /**
      * 获取请求体
-     * @return
      */
     public String getBody(){
         if(StringUtils.isEmpty(body)){
@@ -190,8 +164,6 @@ public class GatewayRequest implements IGatewayRequest{
 
     /**
      * 获取Cookie
-     * @param name
-     * @return
      */
     public  io.netty.handler.codec.http.cookie.Cookie getCookie(String name){
         if(cookieMap == null){
@@ -207,8 +179,6 @@ public class GatewayRequest implements IGatewayRequest{
 
     /**
      * 获取指定名词参数值
-     * @param name
-     * @return
      */
     public List<String> getQueryParametersMultiple(String name){
         return  queryStringDecoder.parameters().get(name);
@@ -216,8 +186,6 @@ public class GatewayRequest implements IGatewayRequest{
 
     /**
      * post请求获取指定名词参数值
-     * @param name
-     * @return
      */
     public List<String> getPostParametersMultiples(String name){
         String body = getBody();
@@ -303,6 +271,7 @@ public class GatewayRequest implements IGatewayRequest{
     @Override
     public Request build() {
         requestBuilder.setUrl(getFinalUrl());
+
         //设置用户id 用于下游的服务使用
         requestBuilder.addHeader("userId", String.valueOf(userId));
         return requestBuilder.build();
