@@ -59,8 +59,8 @@ public interface FilterConst {
     String AUTH_FILTER_KEY = "auth_path";
     int AUTH_FILTER_ORDER = 1;
     String TOKEN_USERID_KEY = "userId";
-    String TOKEN_SECRET = "xjx123456";
-    String COOKIE_KEY = "mygateway-jwt";
+    String TOKEN_SECRET = "yu123456";
+    String COOKIE_KEY = "yu-gateway-jwt";
 
     /**
      * 灰度发布过滤器
@@ -73,19 +73,31 @@ public interface FilterConst {
     /**
      * URL加密对称密钥保存过滤器
      */
-    String SYMMETRICKEY_FILTER_ID = "symmetric_key_filter";
-    String SYMMETRICKEY_FILTER_NAME = "symmetric_key_filter";
-    int SYMMETRICKEY_FILTER_ORDER = 2;
-    // AES公私钥的有效期
-    int SYMMETRICKEY_EXPIRE_TIME = 3600;
-    int RSA_PRIVATEKEY_EXPIRE_TIME = 86400;
-    // 前端请求头中携带的AES公钥标识
-    String SYMMETRICKEY_PUBLICKEY = "X-Encrypted-Symmetric-key";
-    // 后端存储 AES对称密钥/RSA私钥的 命名前缀（zset结构）
-    String SECURITYKEY_PREFIX = "security:key";
-    String SYMMETRICKEY_PREFIX = "symmetric:key";
-    // 后端存储RSA私钥到Redis中的标识，因为是不同的服务（网关服务、提供公钥的服务，不同服务间无法共享数据，需要通过 Redis 实现共享）
-    String RSA_PRIVATEKEY_PREFIX = "rsa:key";
+    String SYMMETRIC_KEY_FILTER_ID = "symmetric_key_filter";
+    String SYMMETRIC_KEY_FILTER_NAME = "symmetric_key_filter";
+    int SYMMETRIC_KEY_FILTER_ORDER = 2;
+
+    /**
+     * AES公私钥的有效期
+     */
+    int SYMMETRIC_KEY_EXPIRE_TIME = 3600;
+    int RSA_PRIVATE_KEY_EXPIRE_TIME = 86400;
+
+    /**
+     * 前端请求头中携带的AES公钥标识
+     */
+    String SYMMETRIC_KEY_PUBLIC_KEY = "X-Encrypted-Symmetric-key";
+
+    /**
+     * 后端存储 AES对称密钥/RSA私钥的 命名前缀（zset结构）
+     */
+    String SECURITY_KEY_PREFIX = "security:key";
+    String SYMMETRIC_KEY_PREFIX = "symmetric:key";
+
+    /**
+     * 后端存储RSA私钥到Redis中的标识，因为是不同的服务（网关服务、提供公钥的服务，不同服务间无法共享数据，需要通过 Redis 实现共享）
+     */
+    String RSA_PRIVATE_KEY_PREFIX = "rsa:key";
 
     /**
      * URL加密验证过滤器
@@ -94,6 +106,9 @@ public interface FilterConst {
     String CRYPTO_FILTER_NAME = "crypto_filter";
     int CRYPTO_FILTER_ORDER = 3;
     String CRYPTO_PUBLICKEY = "X-Encrypted-Symmetric-key";
-    // 加密验证白名单，比如登录不需要加密验证 url
+
+    /**
+     * 加密验证白名单，比如登录不需要加密验证 url
+     */
     String WHITE_LIST_KEY = "white_list";
 }
