@@ -18,8 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author yu
@@ -41,15 +41,21 @@ public class AuthFilter implements Filter {
 				continue;
 			}
 
+
 			// 解析过滤器配置，获取到我们需要的认证路径
-			Map<String, String> configMap = JSON.parseObject(config.getConfig(), Map.class);
-			String authPath = configMap.get(FilterConst.AUTH_FILTER_KEY);
+			List<String> authPaths = new ArrayList<>();
+			Map<String, List<String>> configMap = new ConcurrentHashMap<>();
+
+			if (config.getConfig() != null) {
+				configMap = JSON.parseObject(config.getConfig(), Map.class);
+				authPaths = configMap.getOrDefault(FilterConst.AUTH_FILTER_KEY, new ArrayList<>());
+			}
 
 			// 获取当前请求的路径
 			String curRequestKey = ctx.getRequest().getPath();
 
 			// 如果当前请求的路径不是我们需要的认证路径，那么就返回，不进行后续的处理
-			if (!authPath.equals(curRequestKey)) {
+			if (!authPaths.contains(curRequestKey)) {
 				return;
 			}
 
@@ -68,12 +74,21 @@ public class AuthFilter implements Filter {
 	 */
 	private void authenticateToken(GatewayContext ctx, String token) {
 		try {
-			long userId = parseUserIdFromToken(token);
-			ctx.getRequest().setUserId(userId);
-			log.info("AuthFilter 解析 token 成功, userId {}", userId);
+			long tokenUserId = parseUserIdFromToken(token);
+
+			String headerUserId = ctx.getRequest().getHeaders().get("userId");
+			String pathUserId = ctx.getRequest().getQueryParametersMultiple("userId").get(0);
+			String actualUserId = headerUserId != null ? headerUserId : pathUserId;
+
+			if (actualUserId == null || Long.parseLong(actualUserId) != tokenUserId) {
+				throw new ResponseException(ResponseCode.USERID_MISMATCH);
+			}
+
+			ctx.getRequest().setUserId(tokenUserId);
+			log.info("AuthFilter 解析 token 成功, userId {}", tokenUserId);
 		} catch (Exception e) {
-			log.info("AuthFilter 解析 token 失败, 请求路径 {}", ctx.getRequest().getPath());
-			throw new ResponseException(ResponseCode.UNAUTHORIZED);
+			log.error("AuthFilter 解析 token 失败, 请求路径 {}", ctx.getRequest().getPath());
+			throw new ResponseException(ResponseCode.USERID_MISMATCH);
 		}
 	}
 
@@ -96,11 +111,11 @@ public class AuthFilter implements Filter {
 			throw new RuntimeException("Token 验证错误: ", e);
 		}
 
-		String subject = ((DefaultClaims) jwt.getBody()).getSubject();
-
 		try {
 			// 验证字符串是否可以转换为long类型，并检查范围
-			long userId = Long.parseLong(subject);
+			DefaultClaims claims = (DefaultClaims) jwt.getBody();
+			String jwtUserId = claims.get("userId", String.class);
+			long userId = Long.parseLong(jwtUserId);
 
 			if (userId == Long.MIN_VALUE || userId == Long.MAX_VALUE) {
 				throw new IllegalArgumentException("UseId 超出范围.");
