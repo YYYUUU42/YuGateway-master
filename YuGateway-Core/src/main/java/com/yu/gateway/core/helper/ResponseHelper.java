@@ -21,8 +21,6 @@ import java.util.Objects;
 public class ResponseHelper {
     /**
      * 构造FullHttpResponse对象
-     * @param responseCode
-     * @return
      */
     public static FullHttpResponse getHttpResponse(ResponseCode responseCode) {
         GatewayResponse gatewayResponse = GatewayResponse.buildGatewayResponse(responseCode);
@@ -36,10 +34,7 @@ public class ResponseHelper {
 
     /**
      * 构造FullHttpResponse对象
-     * gatewayResponse——>FullHttpResponse
-     * @param context
-     * @param gatewayResponse
-     * @return
+     * gatewayResponse ——> FullHttpResponse
      */
     private static FullHttpResponse getHttpResponse(IContext context, GatewayResponse gatewayResponse) {
         ByteBuf content;
@@ -72,25 +67,28 @@ public class ResponseHelper {
 
     /**
      * 写回响应
-     * @param context
      */
     public static void writeResponse(IContext context) {
-        // release request resources
+        // 释放请求资源
         context.releaseRequest();
-        // start writeback
+
+        // 开始写回响应
         if (context.judgeContextStatus(ContextStatus.Written)) {
             FullHttpResponse response = getHttpResponse(context, (GatewayResponse) context.getResponse());
-            // not keepAlive connection, close channel after response
+
+            // 如果不是保持连接的情况，响应后关闭通道
             if (!context.isKeepAlive()) {
                 context.getNettyContext().writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
             } else {
+                // 如果是保持连接的情况，设置响应头部的连接为保持连接
                 response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+                // 写回响应
                 context.getNettyContext().writeAndFlush(response);
             }
-            // change contextStatus
+            // 改变上下文状态为已完成
             context.setContextStatus(ContextStatus.Completed);
         } else if (context.judgeContextStatus(ContextStatus.Completed)) {
-            // 重复触发写回操作时，执行回调函数
+            // 如果上下文状态已经是已完成，执行回调函数
             context.invokeCompletedCallBacks();
         }
     }
