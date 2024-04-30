@@ -6,6 +6,7 @@ import com.yu.gateway.core.filter.Filter;
 import com.yu.gateway.core.filter.FilterAspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import static com.yu.gateway.common.constant.FilterConst.GRAY_FILTER_KEY;
 
@@ -17,7 +18,9 @@ import static com.yu.gateway.common.constant.FilterConst.GRAY_FILTER_KEY;
 @FilterAspect(id = FilterConst.GRAY_FILTER_ID, name = FilterConst.GRAY_FILTER_NAME, order = FilterConst.GRAY_FILTER_ORDER)
 public class GrayFilter implements Filter {
     private final Logger logger = LoggerFactory.getLogger(GrayFilter.class);
+
     private static String GRAY = "true";
+
     private static final int HASH_LENGTH = 1024;
 
     @Override
@@ -30,7 +33,7 @@ public class GrayFilter implements Filter {
         String gray = ctx.getRequest().getHeaders().get(GRAY_FILTER_KEY);
 
         // 测试灰度功能待时候使用，可以手动指定其是否为灰度流量
-        if (isValidGrayValue(gray) && gray.equalsIgnoreCase(GRAY)) {
+        if (StringUtils.hasText(gray) && gray.equalsIgnoreCase(GRAY)) {
             logger.info("current user {} is set for grayService", ctx.getRequest().getClientIp());
             ctx.setGray(true);
             return;
@@ -49,25 +52,20 @@ public class GrayFilter implements Filter {
     }
 
     /**
-     * 验证gray值是否是有效的
-     *
-     * @param gray
-     * @return
-     */
-    private boolean isValidGrayValue(String gray) {
-        // 此处可以添加更多的验证逻辑，以确保gray值是预期的格式或值
-        return gray != null && !gray.isEmpty();
-    }
-
-    /**
      * 验证clientIp是否是有效的
-     *
-     * @param clientIp
-     * @return
      */
     private boolean isValidClientIp(String clientIp) {
-        // 此处可以添加IP地址格式验证逻辑，为简洁起见，这里仅返回true
-        // 实际应用中，应确保clientIp是有效且可用的IP地址格式
-        return clientIp != null && !clientIp.isEmpty();
+        // 正则表达式，用于验证IPv4地址的格式
+        String ipv4Pattern = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
+        // 正则表达式，用于验证IPv6地址的格式
+        String ipv6Pattern = "^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$";
+
+        // 如果clientIp为null或者为空，那么就返回false
+        if (clientIp == null || clientIp.isEmpty()) {
+            return false;
+        }
+
+        // 如果clientIp匹配IPv4或IPv6的正则表达式，那么就返回true，否则返回false
+        return clientIp.matches(ipv4Pattern) || clientIp.matches(ipv6Pattern);
     }
 }
