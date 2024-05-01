@@ -12,66 +12,76 @@ import java.util.Set;
 
 /**
  * @author yu
- * @description 核心请求url的规则匹配类
+ * @description 核心请求 url 的规则匹配类
  * @date 2024-03-31
  */
-@Getter
-@Setter
+@Data
 public class Rule implements Comparable<Rule>, Serializable {
     /**
      * 规则ID
      */
     private String id;
+
     /**
      * 规则名称
      */
     private String name;
+
     /**
      * 规则协议
      */
     private String protocol;
+
     /**
      * 后端服务ID
      */
     private String serviceId;
+
     /**
      * 请求前缀
      */
     private String prefix;
+
     /**
      * 路径集合
      */
     private List<String> paths;
+
     /**
      * 优先级
      */
     Integer order;
+
     /**
      * 过滤器集合
      */
     private Set<FilterConfig> filterConfigs = new HashSet<FilterConfig>();
+
     /**
      * 重试规则
      */
     private RetryConfig retryConfig = new RetryConfig();
+
     /**
      * 限流规则
      */
     private Set<FlowControlConfig> flowControlConfigs = new HashSet<>();
+
     /**
      * 熔断规则
      */
     private Set<HystrixConfig> hystrixConfigs = new HashSet<>();
+
     /**
      * 规则过滤器
      */
-    @Setter
-	@Getter
+    @Data
 	public static class FilterConfig {
         /**
          * 过滤器唯一Id
          */
         private String id;
+
         /**
          * 过滤器规则描述:
          * 1.负载均衡过滤器：{"load_balance": "Random"}
@@ -104,6 +114,7 @@ public class Rule implements Comparable<Rule>, Serializable {
     public static class RetryConfig {
         private int times;
     }
+
     /**
      * 熔断规则
      */
@@ -129,24 +140,43 @@ public class Rule implements Comparable<Rule>, Serializable {
          */
         private String fallbackResponse;
     }
+
     /**
      * 限流过滤器配置
      */
     @Data
     public static class FlowControlConfig {
-        // 限流类型
+        /**
+         * 限流类型
+         */
         private String type;
-        // 限流对象值
+
+        /**
+         * 限流对象值
+         */
         private String value;
-        // 限流模式——单机/分布式
+
+        /**
+         * 限流模式——单机/分布式
+         */
         private String mode;
-        // 限流规则,json字符串存储
+
+        /**
+         * 限流规则,json字符串存储
+         */
         private String config;
     }
+
+    /**
+     * 添加过滤器配置
+     */
     public boolean addFilterConfig(FilterConfig config) {
         return filterConfigs.add(config);
     }
 
+    /**
+     * 根据过滤器id得到过滤器配置
+     */
     public FilterConfig getFilterConfigById(String id) {
         for (FilterConfig config : filterConfigs) {
             if (config.getId().equals(id)) {
