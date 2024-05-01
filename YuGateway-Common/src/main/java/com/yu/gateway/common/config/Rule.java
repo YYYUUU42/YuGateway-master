@@ -162,6 +162,11 @@ public class Rule implements Comparable<Rule>, Serializable {
         private String mode;
 
         /**
+         * 限流算法--固定窗口/令牌桶
+         */
+        private String algorithm;
+
+        /**
          * 限流规则,json字符串存储
          */
         private String config;
