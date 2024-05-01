@@ -20,8 +20,21 @@ public class HttpController {
 
 	@ApiInvoker(path = "/http-server/ping")
 	@GetMapping("/http-server/ping")
-	public String ping() {
+	public String ping() throws InterruptedException {
+
+//		Thread.sleep(120 * 1000);
 		log.info("{}", apiProperties);
 		return "pong1";
 	}
+
+	/**
+	 * 模拟灰度发布的服务对象
+	 */
+	@ApiInvoker(path = "/http-server/gray")
+	@GetMapping("/http-server/gray")
+	public String grayRelease() {
+		log.info("start exec gray release service");
+		return "gray exec success";
+	}
+
 }
