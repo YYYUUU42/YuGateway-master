@@ -26,5 +26,5 @@ public interface AbstractExecuteStrategy<REQUEST, RESPONSE> {
     /**
      * 执行策略带返回值
      */
-    default RESPONSE executeResp(REQUEST requestParam) {return null;}
+    default RESPONSE executeResp(REQUEST requestParam,String key) {return null;}
 }
