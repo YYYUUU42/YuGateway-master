@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.yu.gateway.common.config.Rule;
 import com.yu.gateway.common.constant.FilterConst;
 import com.yu.gateway.common.utils.redis.JedisUtil;
-import com.yu.gateway.core.filter.flow.FlowAlgorithmEnum;
+import com.yu.gateway.core.filter.flow.FlowAlgorithmConstant;
 
 import java.util.Map;
 
@@ -21,9 +21,13 @@ public class StableAlgorithm implements AbstractExecuteStrategy<Rule.FlowControl
 
 	private static final Long SUCCESS_FLAG = 1L;
 
+	public StableAlgorithm(JedisUtil jedisUtil) {
+		this.jedisUtil = jedisUtil;
+	}
+
 	@Override
 	public String mark() {
-		return FlowAlgorithmEnum.FIXED_WINDOWS_ALGORITHM.getAlg();
+		return FlowAlgorithmConstant.FIXED_WINDOWS_ALGORITHM;
 	}
 
 	@Override
