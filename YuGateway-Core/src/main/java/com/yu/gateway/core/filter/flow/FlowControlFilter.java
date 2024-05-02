@@ -7,7 +7,6 @@ import com.yu.gateway.core.filter.Filter;
 import com.yu.gateway.core.filter.FilterAspect;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -44,8 +43,8 @@ public class FlowControlFilter implements Filter {
 						&& path.equals(flowControlConfig.getValue())) {
 					flowControlRule = FlowControlByPathRule.getInstance(rule.getServiceId(), path);
 				} else if (flowControlConfig.getType().equalsIgnoreCase(FilterConst.FLOW_CTL_TYPE_SERVICE)
-						&& path.equals(flowControlConfig.getValue())) {
-					// 基于服务限流
+						&& rule.getServiceId().equals(flowControlConfig.getValue())) {
+					flowControlRule = FlowControlByService.getInstance(rule.getServiceId());
 				}
 				if (flowControlRule != null) {
 					// 执行具体限流逻辑
