@@ -100,9 +100,11 @@ public class FlowControlByPathRule implements GatewayFlowControlRule {
 		//如果是分布式项目 那么我们就需要使用Redis来实现流控  单机则可以直接使用Guava
 		if (FilterConst.FLOW_CTL_MODE_DISTRIBUTED.equalsIgnoreCase(flowControlConfig.getMode())) {
 			flag = switch (flowControlConfig.getAlgorithm()) {
-				case VOTE_BUCKET_ALGORITHM -> new VoteBucketAlgorithm(new JedisUtil()).executeResp(flowControlConfig);
-				case FIXED_WINDOWS_ALGORITHM -> new StableAlgorithm(new JedisUtil()).executeResp(flowControlConfig);
-				default -> new VoteBucketAlgorithm(new JedisUtil()).executeResp(flowControlConfig);
+				case VOTE_BUCKET_ALGORITHM ->
+						new VoteBucketAlgorithm(new JedisUtil()).executeResp(flowControlConfig, key);
+				case FIXED_WINDOWS_ALGORITHM ->
+						new StableAlgorithm(new JedisUtil()).executeResp(flowControlConfig, key);
+				default -> new VoteBucketAlgorithm(new JedisUtil()).executeResp(flowControlConfig, key);
 			};
 		} else {
 			//单机版限流 直接用Guava

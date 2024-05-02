@@ -39,7 +39,7 @@ public class StableAlgorithm implements AbstractExecuteStrategy<Rule.FlowControl
 	 * 限流具体操作
 	 */
 	@Override
-	public Boolean executeResp(Rule.FlowControlConfig requestParam) {
+	public Boolean executeResp(Rule.FlowControlConfig requestParam,String key) {
 		Map<String, Integer> configMap = JSON.parseObject(requestParam.getConfig(), Map.class);
 		if (!configMap.containsKey(FilterConst.FLOW_CTL_LIMIT_DURATION) || !configMap.containsKey(FilterConst.FLOW_CTL_LIMIT_PERMITS)) {
 			return false;
@@ -47,7 +47,7 @@ public class StableAlgorithm implements AbstractExecuteStrategy<Rule.FlowControl
 		double duration = configMap.get(FilterConst.FLOW_CTL_LIMIT_DURATION);
 		double permits = configMap.get(FilterConst.FLOW_CTL_LIMIT_PERMITS);
 
-		return isAllowed(requestParam.getValue(), (int) permits, (int) duration);
+		return isAllowed(key, (int) permits, (int) duration);
 	}
 
 	/**

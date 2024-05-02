@@ -4,18 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.yu.gateway.common.config.Rule;
 import com.yu.gateway.common.constant.FilterConst;
 import com.yu.gateway.common.utils.redis.JedisUtil;
-import com.yu.gateway.core.filter.flow.FlowAlgorithmEnum;
+import com.yu.gateway.core.filter.flow.FlowAlgorithmConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author yu
@@ -28,6 +23,10 @@ public class VoteBucketAlgorithm implements AbstractExecuteStrategy<Rule.FlowCon
 
 	protected JedisUtil jedisUtil;
 
+	public VoteBucketAlgorithm(JedisUtil jedisUtil) {
+		this.jedisUtil = jedisUtil;
+	}
+
 	/**
 	 * 成功标识
 	 */
@@ -35,7 +34,7 @@ public class VoteBucketAlgorithm implements AbstractExecuteStrategy<Rule.FlowCon
 
 	@Override
 	public String mark() {
-		return FlowAlgorithmEnum.VOTE_BUCKET_ALGORITHM.getAlg();
+		return FlowAlgorithmConstant.VOTE_BUCKET_ALGORITHM;
 	}
 
 	@Override
@@ -47,14 +46,14 @@ public class VoteBucketAlgorithm implements AbstractExecuteStrategy<Rule.FlowCon
 	 * 限流具体操作
 	 */
 	@Override
-	public Boolean executeResp(Rule.FlowControlConfig requestParam) {
+	public Boolean executeResp(Rule.FlowControlConfig requestParam,String key) {
 		Map<String, Integer> configMap = JSON.parseObject(requestParam.getConfig(), Map.class);
 		if (!configMap.containsKey(FilterConst.FLOW_CTL_LIMIT_DURATION) || !configMap.containsKey(FilterConst.FLOW_CTL_LIMIT_PERMITS)) {
 			return false;
 		}
 		double duration = configMap.get(FilterConst.FLOW_CTL_LIMIT_DURATION);
 		double permits = configMap.get(FilterConst.FLOW_CTL_LIMIT_PERMITS);
-		return isAllowed(requestParam.getValue(), (int)(permits/duration), (int)permits, 1);
+		return isAllowed(key, (int)(permits/duration), (int)permits, 1);
 	}
 
 	/**
@@ -66,8 +65,10 @@ public class VoteBucketAlgorithm implements AbstractExecuteStrategy<Rule.FlowCon
 	 * @param tokens   需要令牌数
 	 */
 	public boolean isAllowed(String id, int rate, int capacity, int tokens) {
+
 		// 读取 lua 脚本
 		BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResourceAsStream("vote_bucket_flow.lua"))));
+
 		StringBuilder builder = new StringBuilder();
 		String line = null;
 		try {
