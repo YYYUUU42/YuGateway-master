@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.yu.gateway.common.config.Rule;
 import com.yu.gateway.common.constant.FilterConst;
 import com.yu.gateway.common.utils.redis.JedisUtil;
+import com.yu.gateway.core.filter.flow.algorithm.StableAlgorithm;
+import com.yu.gateway.core.filter.flow.algorithm.VoteBucketAlgorithm;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
@@ -11,6 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.yu.gateway.common.constant.FilterConst.FLOW_CTL_LIMIT_DURATION;
 import static com.yu.gateway.common.constant.FilterConst.FLOW_CTL_LIMIT_PERMITS;
+import static com.yu.gateway.core.filter.flow.FlowAlgorithmConstant.FIXED_WINDOWS_ALGORITHM;
+import static com.yu.gateway.core.filter.flow.FlowAlgorithmConstant.VOTE_BUCKET_ALGORITHM;
 
 /**
  * @author yu
@@ -95,7 +99,11 @@ public class FlowControlByPathRule implements GatewayFlowControlRule {
 
 		//如果是分布式项目 那么我们就需要使用Redis来实现流控  单机则可以直接使用Guava
 		if (FilterConst.FLOW_CTL_MODE_DISTRIBUTED.equalsIgnoreCase(flowControlConfig.getMode())) {
-			flag = redisCountLimiter.doFlowCtl(key, (int)permits, (int)duration);
+			flag = switch (flowControlConfig.getAlgorithm()) {
+				case VOTE_BUCKET_ALGORITHM -> new VoteBucketAlgorithm(new JedisUtil()).executeResp(flowControlConfig);
+				case FIXED_WINDOWS_ALGORITHM -> new StableAlgorithm(new JedisUtil()).executeResp(flowControlConfig);
+				default -> new VoteBucketAlgorithm(new JedisUtil()).executeResp(flowControlConfig);
+			};
 		} else {
 			//单机版限流 直接用Guava
 			GuavaCountLimiter guavaCountLimiter = GuavaCountLimiter.getInstance(serviceId, flowControlConfig);
