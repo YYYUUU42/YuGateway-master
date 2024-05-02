@@ -105,11 +105,6 @@ public class GuavaCountLimiter {
 	 * @return 是否获取成功
 	 */
 	public boolean acquire(int permits) {
-		boolean success = rateLimiter.tryAcquire(permits);
-		if (success) {
-			return true;
-		} else {
-			return false;
-		}
+		return rateLimiter.tryAcquire(permits);
 	}
 }
