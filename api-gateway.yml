@@ -4,7 +4,7 @@
       "id": "user-private",
       "name": "user-private",
       "paths": [
-        "/user/private/user-info"
+        "/user/userInfo"
       ],
       "prefix": "/user/private",
       "protocol": "http",
@@ -17,7 +17,12 @@
           "id": "load_balance_filter"
         },
         {
-          "id": "auth_filter"
+          "id": "auth_filter",
+          "config": {
+            "auth_path": [
+              "/user/userInfo"
+            ]
+          }
         }
       ]
     },
@@ -43,7 +48,8 @@
       "id": "http-server",
       "name": "http-server",
       "paths": [
-        "/http-server/ping"
+        "/http-server/ping",
+        "/http-server/gray"
       ],
       "prefix": "/http-server",
       "protocol": "http",
@@ -60,8 +66,24 @@
         },
         {
           "id": "auth_filter"
+        },
+        {
+          "id": "gray_filter"
+        },
+        {
+          "id": "flow_ctl_filter"
         }
-      ]
+      ],
+      "flowControlConfigs": [ {
+        "type": "path",
+        "value": "/http-server/ping",
+        "mode": "distributed",
+        "algorithm": "move_window",
+        "config": {
+          "duration": 1,
+          "permits": 10
+        }
+      } ]
     }
   ]
 }
