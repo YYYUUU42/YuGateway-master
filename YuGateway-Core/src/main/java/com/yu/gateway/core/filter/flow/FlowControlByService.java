@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.yu.gateway.common.config.Rule;
 import com.yu.gateway.common.constant.FilterConst;
 import com.yu.gateway.common.utils.redis.JedisUtil;
+import com.yu.gateway.core.filter.flow.algorithm.SlidingWindowAlgorithm;
 import com.yu.gateway.core.filter.flow.algorithm.StableAlgorithm;
 import com.yu.gateway.core.filter.flow.algorithm.VoteBucketAlgorithm;
 import org.apache.commons.lang3.StringUtils;
@@ -13,8 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.yu.gateway.common.constant.FilterConst.FLOW_CTL_LIMIT_DURATION;
 import static com.yu.gateway.common.constant.FilterConst.FLOW_CTL_LIMIT_PERMITS;
-import static com.yu.gateway.core.filter.flow.FlowAlgorithmConstant.FIXED_WINDOWS_ALGORITHM;
-import static com.yu.gateway.core.filter.flow.FlowAlgorithmConstant.VOTE_BUCKET_ALGORITHM;
+import static com.yu.gateway.core.filter.flow.FlowAlgorithmConstant.*;
 
 /**
  * @author yu
@@ -84,9 +84,11 @@ public class FlowControlByService implements GatewayFlowControlRule {
 						new VoteBucketAlgorithm(new JedisUtil()).executeResp(flowControlConfig, key);
 				case FIXED_WINDOWS_ALGORITHM ->
 						new StableAlgorithm(new JedisUtil()).executeResp(flowControlConfig, key);
+				case MOVE_WINDOWS_ALGORITHM ->
+						new SlidingWindowAlgorithm(new JedisUtil()).executeResp(flowControlConfig, key);
 				default -> new VoteBucketAlgorithm(new JedisUtil()).executeResp(flowControlConfig, key);
 			};
-		} else {
+		}  else {
 			//单机版限流 直接用Guava
 			GuavaCountLimiter guavaCountLimiter = GuavaCountLimiter.getInstance(serviceId, flowControlConfig);
 
