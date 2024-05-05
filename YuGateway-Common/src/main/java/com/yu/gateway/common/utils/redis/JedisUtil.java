@@ -285,10 +285,6 @@ public class JedisUtil {
 
     /**
      *  获取分布式锁：value值(防止过期释放其它刚刚获取锁的线程)、过期时间
-     * @param lockKey
-     * @param requestId
-     * @param expireTime
-     * @return
      */
     public boolean getDistributeLock(String lockKey, String requestId, int expireTime) {
         Jedis jedis = jedisPool.getJedis();
@@ -311,9 +307,7 @@ public class JedisUtil {
      * 1.比较value值是否一致；
      * 2.释放分布式锁，删除对应的 key；
      * 3.原子操作；
-     * @param lockKey
-     * @param requestId
-     * @return
+
      */
     public boolean releaseDistributeLock(String lockKey, String requestId) {
         Jedis jedis = jedisPool.getJedis();
@@ -407,6 +401,42 @@ public class JedisUtil {
             return jedis.eval(script, keys, Arrays.asList(args));
         } catch (Exception e) {
             log.error("executeLuaScript throws:", e);
+        }
+        return null;
+    }
+
+    /**
+     * 在zset中添加一个成员，分数是当前时间戳
+     */
+    public Long zadd(String key, double score, String member) {
+        try (Jedis jedis = jedisPool.getJedis()) {
+            return jedis.zadd(key, score, member);
+        } catch (Exception e) {
+            log.error("zadd throws:", e);
+        }
+        return null;
+    }
+
+    /**
+     * 删除zset中所有分数小于窗口开始时间的成员
+     */
+    public Long zremrangeByScore(String key, double start, double end) {
+        try (Jedis jedis = jedisPool.getJedis()) {
+            return jedis.zremrangeByScore(key, start, end);
+        } catch (Exception e) {
+            log.error("zremrangeByScore throws:", e);
+        }
+        return null;
+    }
+
+    /**
+     * 获取zset的大小
+     */
+    public Long zcard(String key) {
+        try (Jedis jedis = jedisPool.getJedis()) {
+            return jedis.zcard(key);
+        } catch (Exception e) {
+            log.error("zcard throws:", e);
         }
         return null;
     }
