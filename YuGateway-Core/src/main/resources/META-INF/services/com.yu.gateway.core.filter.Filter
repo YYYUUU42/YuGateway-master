@@ -1,0 +1,5 @@
+com.yu.gateway.core.filter.auth.AuthFilter
+com.yu.gateway.core.filter.loadBalance.LoadBalanceFilter
+com.yu.gateway.core.filter.router.RouterFilter
+com.yu.gateway.core.filter.gray.GrayFilter
+com.yu.gateway.core.filter.flow.FlowControlFilter
