@@ -81,7 +81,7 @@ public interface FilterConst {
      * AES公私钥的有效期
      */
     int SYMMETRIC_KEY_EXPIRE_TIME = 3600;
-    int RSA_PRIVATE_KEY_EXPIRE_TIME = 86400;
+    int RSA_PRIVATE_KEY_EXPIRE_TIME = 24 * 3600;
 
     /**
      * 前端请求头中携带的AES公钥标识
@@ -105,7 +105,7 @@ public interface FilterConst {
     String CRYPTO_FILTER_ID = "crypto_filter";
     String CRYPTO_FILTER_NAME = "crypto_filter";
     int CRYPTO_FILTER_ORDER = 3;
-    String CRYPTO_PUBLICKEY = "X-Encrypted-Symmetric-key";
+    String CRYPTO_PUBLIC_KEY = "X-Encrypted-Symmetric-key";
 
     /**
      * 加密验证白名单，比如登录不需要加密验证 url
