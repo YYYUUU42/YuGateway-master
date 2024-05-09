@@ -86,9 +86,6 @@ public class RequestHelper {
 
     /**
      * 解析请求url对应的规则匹配
-     * @param request
-     * @param serviceId
-     * @return
      */
     private static Rule getRule(GatewayRequest request, String serviceId) {
         // 拼接服务ID+请求路径

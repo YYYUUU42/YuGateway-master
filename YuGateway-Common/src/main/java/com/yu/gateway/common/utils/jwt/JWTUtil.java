@@ -19,10 +19,6 @@ public class JWTUtil {
 
     /**
      * JWT加密生成TOKEN
-     * @param params
-     * @param expire
-     * @param secret
-     * @return
      */
     public static String generateToken(Map<String, Object> params, long expire, String secret) {
         Date date = new Date();
@@ -37,8 +33,6 @@ public class JWTUtil {
 
     /**
      * JWT解密
-     * @param token
-     * @return
      */
     public static Claims getClaimByToken(String token, String secret) {
         try {
