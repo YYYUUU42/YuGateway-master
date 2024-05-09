@@ -72,6 +72,18 @@
         },
         {
           "id": "flow_ctl_filter"
+        },
+        {
+          "id": "symmetric_key_filter"
+        },
+        {
+          "id": "crypto_filter",
+          "config": {
+            "white_list": [
+              "/http-server/ping",
+              "/http-server/encrypt-url"
+            ]
+          }
         }
       ],
       "flowControlConfigs": [ {
