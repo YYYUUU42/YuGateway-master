@@ -18,6 +18,7 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -52,6 +53,7 @@ public class NettyHttpServer implements LifeCycle {
 	/**
 	 * worker线程组，用于处理已经建立的连接的后续操作
 	 */
+	@Getter
 	private EventLoopGroup eventLoopGroupWorker;
 
 	public NettyHttpServer(Config config, NettyProcessor processor) {
@@ -59,11 +61,6 @@ public class NettyHttpServer implements LifeCycle {
 		this.processor = processor;
 		init();
 	}
-
-	public EventLoopGroup getEventLoopGroupWorker() {
-		return eventLoopGroupWorker;
-	}
-
 
 	/**
 	 * 初始化服务器，设置线程组和选择线程模型
@@ -86,8 +83,10 @@ public class NettyHttpServer implements LifeCycle {
 	}
 
 	/**
-	 * 是否选用 epoll 优化IO
-	 * 检查当前系统是否可以使用Epoll事件模型。它返回一个布尔值，表示是否可以使用Epoll。Epoll是一种在Linux系统上提供更高性能的事件模型。
+	 * 检查当前系统是否可以使用 Epoll 事件模型，优化 IO
+	 * Epoll是一种在Linux系统上提供更高性能的事件模型
+	 *
+	 * @return 返回一个布尔值，表示是否可以使用 Epoll
 	 */
 	public boolean useEpoll() {
 		return RemotingUtil.isIsLinuxPlatform() && Epoll.isAvailable();
@@ -98,7 +97,6 @@ public class NettyHttpServer implements LifeCycle {
 	 */
 	@Override
 	public void start() {
-		// 配置服务器参数，如端口、TCP参数等
 		this.serverBootstrap
 				.group(eventLoopGroupBoss, eventLoopGroupWorker)
 				.channel(useEpoll() ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
@@ -119,18 +117,20 @@ public class NettyHttpServer implements LifeCycle {
 				// 定义处理新连接的管道初始化逻辑
 				.childHandler(new ChannelInitializer<Channel>() {
 					@Override
-					protected void initChannel(Channel ch) throws Exception {
+					protected void initChannel(Channel channel) throws Exception {
 						// 配置管道中的处理器，如编解码器和自定义处理器
-						ch.pipeline().addLast(
+						channel.pipeline().addLast(
 								new HttpServerCodec(), // 处理HTTP请求的编解码器
 								new HttpObjectAggregator(config.getMaxContentLength()), // 聚合HTTP请求
-								new HttpServerExpectContinueHandler(), // 处理HTTP 100 Continue请求
+								new HttpServerExpectContinueHandler(), // 处理 HTTP 请求
 								new NettyHttpServerHandler(processor), // 自定义的处理器
 								new NettyServerConnectManagerHandler() // 连接管理处理器
 						);
 					}
 				});
+
 		try {
+			// 启动服务器并同步等待成功，如果失败则抛出异常
 			this.serverBootstrap.bind().sync();
 			log.info("server startup on port {}", config.getPort());
 		} catch (InterruptedException e) {

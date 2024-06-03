@@ -18,9 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author yu
- * Disruptor 提升 Netty 性能
  * 通过 Disruptor 异步处理 HTTP 请求提升性能
- * 并行处理器
  * @date 2024-04-16
  */
 @Slf4j

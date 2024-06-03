@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author yu
- * @description NettyCoreProcessor 是负责在基于 Netty 的服务器中处理 HTTP 请求的组件
+ * 处理 HTTP 请求
  * @date 2024-04-06
  */
 @Slf4j
@@ -40,13 +40,13 @@ public class NettyCoreProcessor implements NettyProcessor {
 		ChannelHandlerContext ctx = wrapper.getCtx();
 
 		try {
-			// 创建并填充 GatewayContext 以保存有关传入请求的信息。
+			// 创建并填充 GatewayContext 以保存有关传入请求的信息
 			GatewayContext gatewayContext = RequestHelper.doContext(request, ctx);
 
 			// 组装过滤器并执行过滤操作
 			chainFactory.buildFilterChain(gatewayContext).doFilter(gatewayContext);
 		} catch (BaseException e) {
-			// 通过记录日志并发送适当的 HTTP 响应处理已知异常。
+			// 通过记录日志并发送适当的 HTTP 响应处理已知异常
 			log.error("处理错误 {} {}", e.getCode().getCode(), e.getCode().getMessage());
 			FullHttpResponse httpResponse = ResponseHelper.getHttpResponse(e.getCode());
 			doWriteAndRelease(ctx, request, httpResponse);
@@ -59,7 +59,7 @@ public class NettyCoreProcessor implements NettyProcessor {
 	}
 
 	/**
-	 * 将 HTTP 响应写入通道并释放资源。
+	 * 将 HTTP 响应写入通道并释放资源
 	 *
 	 * @param ctx          用于写入响应的 ChannelHandlerContext。
 	 * @param request      从客户端接收的 FullHttpRequest。
@@ -68,6 +68,7 @@ public class NettyCoreProcessor implements NettyProcessor {
 	private void doWriteAndRelease(ChannelHandlerContext ctx, FullHttpRequest request, FullHttpResponse httpResponse) {
 		// 发送响应后关闭通道
 		ctx.writeAndFlush(httpResponse).addListener(ChannelFutureListener.CLOSE);
+
 		// 释放与请求相关联的资源。
 		ReferenceCountUtil.release(request);
 	}

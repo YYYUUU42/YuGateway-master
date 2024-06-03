@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author yu
- * NettyHttpServerHandler 用于处理通过 Netty 传入的 HTTP 请求。
+ * NettyHttpServerHandler 用于处理通过 Netty 传入的 HTTP 请求,
  * 继承自 ChannelInboundHandlerAdapter，这样可以覆盖回调方法来处理入站事件。
  * @date 2024-04-06
  */
@@ -17,22 +17,17 @@ import lombok.extern.slf4j.Slf4j;
 public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 
     /**
-     * 成员变量 processor，用于处理具体的业务逻辑
+     * 用于处理具体的业务逻辑
      */
     private NettyProcessor processor;
 
-    /**
-     * 构造函数，接收一个 NettyProcessor 类型的参数。
-     *
-     * @param processor 用于处理请求的业务逻辑处理器。
-     */
     public NettyHttpServerHandler(NettyProcessor processor) {
         this.processor = processor;
     }
 
     /**
-     * 当从客户端接收到数据时，该方法会被调用。
-     * 这里将入站的数据（HTTP请求）包装后，传递给业务逻辑处理器。
+     * 当从服务端接收到数据时，该方法会被调用
+     * 这里将入站的数据（HTTP请求）包装后，传递给业务逻辑处理器处理
      *
      * @param ctx ChannelHandlerContext，提供了操作网络通道的方法。
      * @param msg 接收到的消息，预期是一个 FullHttpRequest 对象。
@@ -52,7 +47,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * 处理在处理入站事件时发生的异常。
+     * 处理在处理入站事件时发生的异常
      *
      * @param ctx   ChannelHandlerContext，提供了操作网络通道的方法。
      * @param cause 异常对象。
