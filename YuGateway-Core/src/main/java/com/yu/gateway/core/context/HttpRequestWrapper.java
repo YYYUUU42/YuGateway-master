@@ -11,6 +11,13 @@ import lombok.Data;
  */
 @Data
 public class HttpRequestWrapper {
+    /**
+     * HTTP 请求对象
+     */
     private FullHttpRequest request;
+
+    /**
+     * ChannelHandlerContext 对象，提供了操作网络通道的方法
+     */
     private ChannelHandlerContext ctx;
 }

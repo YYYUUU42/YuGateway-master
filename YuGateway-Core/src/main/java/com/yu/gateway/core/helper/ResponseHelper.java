@@ -20,50 +20,27 @@ import java.util.Objects;
  */
 public class ResponseHelper {
     /**
-     * 构造FullHttpResponse对象
+     * 根据给定的响应码构造 FullHttpResponse 对象
      */
     public static FullHttpResponse getHttpResponse(ResponseCode responseCode) {
+        // 根据响应码构建 GatewayResponse 对象
         GatewayResponse gatewayResponse = GatewayResponse.buildGatewayResponse(responseCode);
-        DefaultFullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
-                HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                Unpooled.wrappedBuffer(gatewayResponse.getContent().getBytes(StandardCharsets.UTF_8)));
-        httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON + "charset=utf-8");
+
+        // 使用 GatewayResponse 对象的内容和状态创建 DefaultFullHttpResponse 对象
+        DefaultFullHttpResponse httpResponse = new DefaultFullHttpResponse(
+                HttpVersion.HTTP_1_1,
+                gatewayResponse.getHttpResponseStatus(),
+                Unpooled.wrappedBuffer(gatewayResponse.getContent().getBytes(StandardCharsets.UTF_8))
+        );
+
+        // 设置响应的头部信息
+        httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON + ";charset=utf-8");
         httpResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, httpResponse.content().readableBytes());
+
+        // 返回构建的响应
         return httpResponse;
     }
 
-    /**
-     * 构造FullHttpResponse对象
-     * gatewayResponse ——> FullHttpResponse
-     */
-    private static FullHttpResponse getHttpResponse(IContext context, GatewayResponse gatewayResponse) {
-        ByteBuf content;
-        // build byteBuf for gatewayResponse
-        if (Objects.nonNull(gatewayResponse.getFutureResponse())) {
-            content = Unpooled.wrappedBuffer(gatewayResponse.getFutureResponse()
-                    .getResponseBodyAsByteBuffer());
-        } else if (gatewayResponse.getContent() != null) {
-            content = Unpooled.wrappedBuffer(gatewayResponse.getContent().getBytes(StandardCharsets.UTF_8));
-        } else {
-            content = Unpooled.wrappedBuffer(BasicConst.BLANK_SEPARATOR_1.getBytes(StandardCharsets.UTF_8));
-        }
-        // build FullHttpResponse
-        if (Objects.isNull(gatewayResponse.getFutureResponse())) {
-            DefaultFullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
-                    gatewayResponse.getHttpResponseStatus(), content);
-            httpResponse.headers().add(gatewayResponse.getResponseHeaders());
-            httpResponse.headers().add(gatewayResponse.getExtraResponseHeaders());
-            httpResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, httpResponse.content().readableBytes());
-            return httpResponse;
-        } else {
-            gatewayResponse.getFutureResponse().getHeaders().add(gatewayResponse.getExtraResponseHeaders());
-            DefaultFullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
-                    HttpResponseStatus.valueOf(gatewayResponse.getFutureResponse().getStatusCode()),
-                    content);
-            httpResponse.headers().add(gatewayResponse.getFutureResponse().getHeaders());
-            return httpResponse;
-        }
-    }
 
     /**
      * 写回响应
@@ -82,14 +59,55 @@ public class ResponseHelper {
             } else {
                 // 如果是保持连接的情况，设置响应头部的连接为保持连接
                 response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+
                 // 写回响应
                 context.getNettyContext().writeAndFlush(response);
             }
+
             // 改变上下文状态为已完成
             context.setContextStatus(ContextStatus.Completed);
         } else if (context.judgeContextStatus(ContextStatus.Completed)) {
             // 如果上下文状态已经是已完成，执行回调函数
             context.invokeCompletedCallBacks();
+        }
+    }
+
+    /**
+     * 构造 FullHttpResponse 对象   GatewayResponse -> FullHttpResponse
+     */
+    private static FullHttpResponse getHttpResponse(IContext context, GatewayResponse gatewayResponse) {
+        ByteBuf content;
+        // 检查 gatewayResponse 是否有 FutureResponse，如果有，使用其响应体作为 content
+        if (Objects.nonNull(gatewayResponse.getFutureResponse())) {
+            content = Unpooled.wrappedBuffer(gatewayResponse.getFutureResponse().getResponseBodyAsByteBuffer());
+        } else if (gatewayResponse.getContent() != null) {
+            // 如果没有 FutureResponse，但是有 content，那么使用 content 作为响应体
+            content = Unpooled.wrappedBuffer(gatewayResponse.getContent().getBytes(StandardCharsets.UTF_8));
+        } else {
+            // 如果两者都没有，使用默认的 BLANK_SEPARATOR_1 作为响应体
+            content = Unpooled.wrappedBuffer(BasicConst.BLANK_SEPARATOR_1.getBytes(StandardCharsets.UTF_8));
+        }
+
+        // 构建 FullHttpResponse
+        if (Objects.isNull(gatewayResponse.getFutureResponse())) {
+            // 如果没有 FutureResponse，使用 gatewayResponse 的 HttpResponseStatus 和 headers
+            DefaultFullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
+                    gatewayResponse.getHttpResponseStatus(),
+                    content);
+            httpResponse.headers().add(gatewayResponse.getResponseHeaders());
+            httpResponse.headers().add(gatewayResponse.getExtraResponseHeaders());
+            httpResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, httpResponse.content().readableBytes());
+
+            return httpResponse;
+        } else {
+            // 如果有 FutureResponse，使用其状态码和 headers
+            gatewayResponse.getFutureResponse().getHeaders().add(gatewayResponse.getExtraResponseHeaders());
+            DefaultFullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
+                    HttpResponseStatus.valueOf(gatewayResponse.getFutureResponse().getStatusCode()),
+                    content);
+            httpResponse.headers().add(gatewayResponse.getFutureResponse().getHeaders());
+
+            return httpResponse;
         }
     }
 }

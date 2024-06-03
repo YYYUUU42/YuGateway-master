@@ -18,7 +18,7 @@ public class ConfigLoader {
     private static final String CONFIG_FILE = "gateway.properties";
     private static final String ENV_PREFIX = "GATEWAY_";
     private static final String JVM_PREFIX = "gateway.";
-    private static ConfigLoader instance;
+    private static volatile ConfigLoader instance;
     private Config config;
 
     private ConfigLoader() {}
@@ -27,6 +27,9 @@ public class ConfigLoader {
         return instance.config;
     }
 
+    /**
+     * 单例模式
+     */
     public static ConfigLoader getInstance() {
         if (instance == null) {
             synchronized (ConfigLoader.class) {
@@ -40,45 +43,45 @@ public class ConfigLoader {
 
     /**
      * 配置加载，指定优先级：运行时参数——>jvm参数——>环境变量——>配置文件——>配置对象默认值
-     * @param args
-     * @return
      */
     public Config load(String[] args) {
-        // 配置对象默认值
         config = new Config();
+
         // 配置文件
         loadConfigFile();
+
         // 环境变量
         loadEnv();
+
         // jvm参数
         loadJvmParams();
+
         // 运行参数
         loadRuntimeParams(args);
+
         return config;
     }
 
     /**
      * 配置文件加载方式
-     * @return
      */
     public void loadConfigFile() {
-        InputStream in = ConfigLoader.class.getClassLoader().getResourceAsStream(CONFIG_FILE);
-        if (in != null) {
-            Properties prop = new Properties();
+        InputStream inputStream = ConfigLoader.class.getClassLoader().getResourceAsStream(CONFIG_FILE);
+        if (inputStream != null) {
+            Properties properties = new Properties();
+
             try {
-                prop.load(in);
-                PropertiesUtils.properties2Object(prop, config);
+                properties.load(inputStream);
+                PropertiesUtils.propertiesToObject(properties, config);
             } catch (IOException e) {
                 log.warn("load config file {} error", CONFIG_FILE, e);
             } finally {
-                if (in != null) {
-                    try {
-                        in.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+				try {
+                    inputStream.close();
+				} catch (IOException e) {
+					log.error("close config file {} error", CONFIG_FILE, e);
+				}
+			}
         }
     }
 
@@ -89,7 +92,7 @@ public class ConfigLoader {
         Map<String, String> env = System.getenv();
         Properties properties = new Properties();
         properties.putAll(env);
-        PropertiesUtils.properties2Object(properties, config, ENV_PREFIX);
+        PropertiesUtils.propertiesToObject(properties, config, ENV_PREFIX);
     }
 
     /**
@@ -97,7 +100,7 @@ public class ConfigLoader {
      */
     public void loadJvmParams() {
         Properties properties = System.getProperties();
-        PropertiesUtils.properties2Object(properties, config, JVM_PREFIX);
+        PropertiesUtils.propertiesToObject(properties, config, JVM_PREFIX);
     }
 
     /**
@@ -111,7 +114,7 @@ public class ConfigLoader {
                     properties.put(arg.substring(2, arg.indexOf("=")), arg.substring(arg.indexOf("=")+1));
                 }
             }
-            PropertiesUtils.properties2Object(properties, config);
+            PropertiesUtils.propertiesToObject(properties, config);
         }
     }
 }

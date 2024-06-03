@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 
 import static com.yu.gateway.common.constant.FilterConst.*;
 
@@ -59,48 +60,54 @@ public class RouterFilter implements Filter {
 
 		//如果存在对应配置就走熔断降级的逻辑
 		if (hystrixConfig.isPresent()) {
-			routeWithHystrix(gatewayContext, hystrixConfig);
+			routeWithHystrix(gatewayContext, hystrixConfig.get());
 		} else {
-			route(gatewayContext, hystrixConfig);
+			route(gatewayContext);
 		}
 	}
 
 	/**
 	 * 获取 hystrix 的配置
-	 * 1.对比请求路径和注册中心注册的路径参数；
-	 * 2.判断当前请求是否需要走熔断策略分支；
+	 * 对比请求路径和注册中心注册的路径参数，判断当前请求是否需要走熔断策略分支
 	 */
 	private static Optional<Rule.HystrixConfig> getHystrixConfig(GatewayContext gatewayContext) {
 		Rule rule = gatewayContext.getRules();
-		Optional<Rule.HystrixConfig> hystrixConfig = rule.getHystrixConfigs().stream()
-				.filter(c -> StringUtils.equals(c.getPath(), gatewayContext.getRequest().getPath()))
-				.findFirst();
 
-		return hystrixConfig;
+		return rule.getHystrixConfigs().stream()
+				.filter(config -> StringUtils.equals(config.getPath(), gatewayContext.getRequest().getPath()))
+				.findFirst();
 	}
 
 	/**
 	 * 默认路由逻辑：
-	 * 根据 whenComplete 	判断执行回调的线程是否阻塞执行；
-	 * whenComplete 		当异步操作完成时（无论成功还是失败），会立即执行回调函数；
-	 * whenCompleteAsync 	当异步操作完成时，会创建一个新的异步任务来执行回调函数。
+	 * 根据 whenComplete 判断执行回调的线程是否阻塞执行
+	 * whenComplete 		当异步操作完成时（无论成功还是失败），会立即执行回调函数
+	 * whenCompleteAsync 	当异步操作完成时，会创建一个新的异步任务来执行回调函数
 	 */
-	private CompletableFuture<Response> route(GatewayContext gatewayContext, Optional<Rule.HystrixConfig> hystrixConfig) {
-		// 异步请求发送
+	private CompletableFuture<Response> route(GatewayContext gatewayContext) {
+		// 执行 HTTP 请求，并返回一个 CompletableFuture 对象
 		Request request = gatewayContext.getRequest().build();
 		CompletableFuture<Response> future = AsyncHttpHelper.getInstance().executeRequest(request);
+
 		boolean whenComplete = ConfigLoader.getConfig().isWhenComplete();
 
 		// 单异步/双异步模型
 		if (whenComplete) {
-			future.whenComplete(((response, throwable) -> {
-				complete(request, response, throwable, gatewayContext);
-			}));
+			future.whenComplete(new BiConsumer<Response, Throwable>() {
+				@Override
+				public void accept(Response response, Throwable throwable) {
+					complete(request, response, throwable, gatewayContext);
+				}
+			});
 		} else {
-			future.whenCompleteAsync(((response, throwable) -> {
-				complete(request, response, throwable, gatewayContext);
-			}));
+			future.whenCompleteAsync(new BiConsumer<Response, Throwable>() {
+				@Override
+				public void accept(Response response, Throwable throwable) {
+					complete(request, response, throwable, gatewayContext);
+				}
+			});
 		}
+
 		return future;
 	}
 
@@ -110,13 +117,14 @@ public class RouterFilter implements Filter {
 	 * 2.命令执行出现异常或错误；
 	 * 3.连续失败率达到配置的阈值；
 	 */
-	private void routeWithHystrix(GatewayContext gatewayContext, Optional<Rule.HystrixConfig> hystrixConfig) {
+	private void routeWithHystrix(GatewayContext gatewayContext, Rule.HystrixConfig hystrixConfig) {
 		String key = gatewayContext.getUniqueId() + "." + gatewayContext.getRequest().getPath();
 		RouterHystrixCommand proxyCommand = null;
 
+
 		if (commandMap.containsKey(key)) {
 			proxyCommand = commandMap.get(key);
-			if (!hystrixConfig.get().equals(commandMap.get(key))) {
+			if (!hystrixConfig.equals(commandMap.get(key))) {
 				log.info("previous HystrixCommand instance hashCode: {}", proxyCommand.hashCode());
 				proxyCommand.updateHystrixCommandProperties(proxyCommand.getCommandKey().name());
 				proxyCommand = new RouterHystrixCommand(gatewayContext, hystrixConfig);
@@ -161,13 +169,18 @@ public class RouterFilter implements Filter {
 	 */
 	private void handleResponse(Request request, Response response, Throwable throwable, GatewayContext gatewayContext) {
 		String url = request.getUrl();
+
 		try {
 			if (Objects.nonNull(throwable)) {
+				// 如果是超时异常
 				if (throwable instanceof TimeoutException) {
 					log.warn("complete timeout {}", url);
+
 					gatewayContext.setThrowable(throwable);
 					gatewayContext.setResponse(GatewayResponse.buildGatewayResponse(ResponseCode.REQUEST_TIMEOUT));
 				} else if (throwable instanceof IOException) {
+					log.warn("complete io exception {}", url);
+
 					gatewayContext.setThrowable(new ConnectException(throwable, gatewayContext.getUniqueId(), url, ResponseCode.HTTP_RESPONSE_ERROR));
 					gatewayContext.setResponse(GatewayResponse.buildGatewayResponse(ResponseCode.HTTP_RESPONSE_ERROR));
 				}
@@ -189,6 +202,9 @@ public class RouterFilter implements Filter {
 	 */
 	private void doRetry(GatewayContext gatewayContext, int retryTimes) {
 		gatewayContext.setCurrentRetryTimes(retryTimes + 1);
+
+		log.info("当前请求重试次数为{}", gatewayContext.getCurrentRetryTimes());
+
 		try {
 			// 重新执行过滤器逻辑
 			doFilter(gatewayContext);
@@ -198,24 +214,21 @@ public class RouterFilter implements Filter {
 		}
 	}
 
-	/**
-	 * Hystrix命令集合
-	 */
 	private class RouterHystrixCommand extends HystrixCommand<Object> {
 		private GatewayContext context;
-		private Optional<Rule.HystrixConfig> config;
+		private Rule.HystrixConfig config;
 
-		public RouterHystrixCommand(GatewayContext context, Optional<Rule.HystrixConfig> config) {
+		public RouterHystrixCommand(GatewayContext context, Rule.HystrixConfig config) {
 			super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(context.getUniqueId()))
 					.andCommandKey(HystrixCommandKey.Factory.asKey(context.getRequest().getPath()))
 					.andThreadPoolPropertiesDefaults(HystrixThreadPoolProperties.Setter()
 							// 核心线程数
-							.withCoreSize(config.get().getCoreThreadSize()))
+							.withCoreSize(config.getCoreThreadSize()))
 					.andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
 							// 线程隔离类型
 							.withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.THREAD)
 							// 命令执行超时
-							.withExecutionTimeoutInMilliseconds(config.get().getTimeoutInMilliseconds())
+							.withExecutionTimeoutInMilliseconds(config.getTimeoutInMilliseconds())
 							// 超时中断
 							.withExecutionIsolationThreadInterruptOnTimeout(true)
 							.withExecutionTimeoutEnabled(true)));
@@ -227,7 +240,7 @@ public class RouterFilter implements Filter {
 		@Override
 		protected Object run() throws Exception {
 			// 实际路由操作
-			route(context, config).get();
+			route(context);
 			return null;
 		}
 
@@ -242,7 +255,7 @@ public class RouterFilter implements Filter {
 				context.setResponse(GatewayResponse.buildGatewayResponse(ResponseCode.GATEWAY_FALLBACK_TIMEOUT));
 			} else {
 				// 其它类型异常熔断处理
-				context.setResponse(GatewayResponse.buildGatewayResponse(ResponseCode.GATEWAY_FALLBACK_ERROR, config.get().getFallbackResponse()));
+				context.setResponse(GatewayResponse.buildGatewayResponse(ResponseCode.GATEWAY_FALLBACK_ERROR, config.getFallbackResponse()));
 			}
 			context.setContextStatus(ContextStatus.Written);
 			return null;

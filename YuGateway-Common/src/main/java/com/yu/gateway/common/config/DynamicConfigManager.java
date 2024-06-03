@@ -1,5 +1,6 @@
 package com.yu.gateway.common.config;
 
+import lombok.Getter;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.*;
@@ -14,18 +15,20 @@ import java.util.stream.Collectors;
  */
 public class DynamicConfigManager {
     /**
-     * 服务定义信息集合  serviceId——>ServiceDefinition
+     * 服务定义信息集合    serviceId —> ServiceDefinition
      */
+    @Getter
     private ConcurrentHashMap<String, ServiceDefinition> serviceDefinitionMap = new ConcurrentHashMap<>();
 
     /**
-     * 服务实例集合     serviceId——>Set<ServiceInstance>
+     * 服务实例集合       serviceId —> Set<ServiceInstance>
      */
     private ConcurrentHashMap<String, Set<ServiceInstance>> serviceInstanceMap = new ConcurrentHashMap<>();
 
     /**
-     * 规则集合        ruleId——>Rule
+     * 规则集合         ruleId —> Rule
      */
+    @Getter
     private ConcurrentHashMap<String, Rule> ruleMap = new ConcurrentHashMap<>();
 
     /**
@@ -62,10 +65,6 @@ public class DynamicConfigManager {
         return serviceDefinitionMap.get(uniqueId);
     }
 
-    public ConcurrentHashMap<String, ServiceDefinition> getServiceDefinitionMap() {
-        return serviceDefinitionMap;
-    }
-
     /******* 对服务实例缓存的相关方法 ********/
     public void putServiceInstance(String uniqueId, ServiceInstance instance) {
         Set<ServiceInstance> instanceSet = serviceInstanceMap.get(uniqueId);
@@ -84,13 +83,18 @@ public class DynamicConfigManager {
         if (CollectionUtils.isEmpty(instanceSet)) {
             return Collections.EMPTY_SET;
         }
+
         // 为灰度流量,返回灰度服务实例
         if (gray) {
             return instanceSet.stream().filter(ServiceInstance::isGray).collect(Collectors.toSet());
         }
+
         return instanceSet;
     }
 
+    /**
+     * 根据服务ID修改服务实例
+     */
     public void updateServiceInstance(String uniqueId, ServiceInstance instance) {
         Set<ServiceInstance> instanceSet = serviceInstanceMap.get(uniqueId);
         Iterator<ServiceInstance> it = instanceSet.iterator();
@@ -101,9 +105,13 @@ public class DynamicConfigManager {
                 break;
             }
         }
+
         instanceSet.add(instance);
     }
 
+    /**
+     * 根据服务ID和服务实例ID删除服务实例
+     */
     public void removeServiceInstance(String uniqueId, String serviceInstanceId) {
         Set<ServiceInstance> instanceSet = serviceInstanceMap.get(uniqueId);
         Iterator<ServiceInstance> iterator = instanceSet.iterator();
@@ -116,6 +124,9 @@ public class DynamicConfigManager {
         }
     }
 
+    /**
+     * 根据服务ID删除服务实例
+     */
     public void removeServiceInstanceByUniqueId(String uniqueId) {
         serviceInstanceMap.remove(uniqueId);
     }
@@ -155,10 +166,6 @@ public class DynamicConfigManager {
 
     public void removeRule(String ruleId) {
         ruleMap.remove(ruleId);
-    }
-
-    public ConcurrentHashMap<String, Rule> getRuleMap() {
-        return ruleMap;
     }
 
     public Rule getRulePath(String path) {

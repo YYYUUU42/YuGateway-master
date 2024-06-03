@@ -24,6 +24,7 @@ public class GatewayResponse {
 	 * 额外的响应结果
 	 */
 	private final HttpHeaders extraResponseHeaders = new DefaultHttpHeaders();
+
 	/**
 	 * 响应内容
 	 */
@@ -46,9 +47,6 @@ public class GatewayResponse {
 
 	/**
 	 * 设置响应头信息
-	 *
-	 * @param key
-	 * @param val
 	 */
 	public void putHeader(CharSequence key, CharSequence val) {
 		responseHeaders.add(key, val);
@@ -56,9 +54,6 @@ public class GatewayResponse {
 
 	/**
 	 * 构建异步响应对象
-	 *
-	 * @param futureResponse
-	 * @return
 	 */
 	public static GatewayResponse buildGatewayResponse(Response futureResponse) {
 		GatewayResponse response = new GatewayResponse();
@@ -69,10 +64,6 @@ public class GatewayResponse {
 
 	/**
 	 * 处理返回json对象，失败时调用
-	 *
-	 * @param code
-	 * @param args
-	 * @return
 	 */
 	public static GatewayResponse buildGatewayResponse(ResponseCode code, Object... args) {
 		ObjectNode objectNode = JSONUtil.createObjectNode();
@@ -89,10 +80,7 @@ public class GatewayResponse {
 	}
 
 	/**
-	 * 处理返回json对象，成功时调用
-	 *
-	 * @param data
-	 * @return
+	 * 处理返回 json对象，成功时调用
 	 */
 	public static GatewayResponse buildGatewayResponse(Object data) {
 		ObjectNode objectNode = JSONUtil.createObjectNode();
